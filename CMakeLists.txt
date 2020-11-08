@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.19)
 
 # Vcpkg as a submodule
-set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/vcpkg/scripts/buildsystems/vcpkg.cmake CACHE STRING "Vcpkg toolchain file")
+set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/scripts/buildsystems/vcpkg.cmake CACHE STRING "Vcpkg toolchain file")
 
 project(Woxel
   VERSION 0.1.0
@@ -16,5 +16,4 @@ include(woxel_utilities)
 # add_subdirectory(docs)
 
 # Engine, game and thirdparty code
-add_subdirectory(thirdparty)
 add_subdirectory(src)

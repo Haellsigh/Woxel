@@ -8,6 +8,8 @@ target_sources(${PROJECT_NAME} PRIVATE
   main.cpp
 )
 
+add_subdirectory(thirdparty)
+
 target_set_woxel_options(${PROJECT_NAME})
 
 ##### Libraries
