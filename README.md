@@ -9,5 +9,5 @@ Clone the repository with `--recursive`.
 Compile vcpkg and install the dependancies. In the root folder, type:
 ```
 ./thirdparty/vcpkg/bootstrap-vcpkg.bat -disableMetricsc        (or .sh if you're on a unix platform)
-./thirdparty/vcpkg/vcpkg install fmt spdlog glfw3 glad
+./thirdparty/vcpkg/vcpkg install fmt spdlog glfw3 glad imgui[glfw-binding]
 ```

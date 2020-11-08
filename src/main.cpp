@@ -1,5 +1,8 @@
 #include <bgfx/bgfx.h>
 #include <bgfx/platform.h>
+#include <imgui.h>
+#include <imgui_impl_bgfx.h>
+#include <imgui_impl_glfw.h>
 #include <spdlog/spdlog.h>
 #include <Tracy.hpp>
 
@@ -45,7 +48,7 @@ int main()
   glfwMakeContextCurrent(mWindow);
   glfwSwapInterval(0);  // Disable VSync
 
-  bgfx::renderFrame();
+  bgfx::renderFrame();  // set singlethreaded mode
 
   bgfx::Init init;
   init.platformData.nwh = glfwGetWin32Window(mWindow);
@@ -64,7 +67,7 @@ int main()
   }
 
   constexpr bgfx::ViewId kClearView = 0;
-  bgfx::setViewClear(kClearView, BGFX_CLEAR_COLOR);
+  bgfx::setViewClear(kClearView, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0x6495EDFF, 1.0f, 0);
   bgfx::setViewRect(kClearView, 0, 0, bgfx::BackbufferRatio::Equal);
 
   // GLFW callbacks
@@ -95,9 +98,41 @@ int main()
     (void)mods;
   });
 
+  // Setup ImGui context
+  IMGUI_CHECKVERSION();
+  ImGui::CreateContext();
+  ImGuiIO& io = ImGui::GetIO();
+  (void)io;
+  ImGui::StyleColorsDark();
+
+  ImGui_Implbgfx_Init(255);
+  ImGui_ImplGlfw_InitForVulkan(mWindow, true);
+
+  /*
+  unsigned char* pixels;
+  io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+
+  // Upload texture to graphics system
+  auto g_FontTexture = bgfx::createTexture2D((uint16_t)width, (uint16_t)height, false, 1,
+                                             bgfx::TextureFormat::BGRA8, 0,
+                                             bgfx::copy(pixels, width * height * 4));
+
+  // Store our identifier
+  io.Fonts->TexID = (void*)(intptr_t)g_FontTexture.idx;
+  */
+
   while (!glfwWindowShouldClose(mWindow)) {
     FrameMark;
     glfwPollEvents();
+
+    ImGui_Implbgfx_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+
+    ImGui::ShowDemoWindow();
+
+    ImGui::Render();
+    ImGui_Implbgfx_RenderDrawLists(ImGui::GetDrawData());
 
     // clear, draw
     bgfx::touch(kClearView);
@@ -107,6 +142,9 @@ int main()
     bgfx::frame();
   }
 
+  ImGui_ImplGlfw_Shutdown();
+  ImGui_Implbgfx_Shutdown();
+  ImGui::DestroyContext();
   bgfx::shutdown();
   glfwTerminate();
 

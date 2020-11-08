@@ -3,6 +3,9 @@ set(BGFX_BUILD_EXAMPLES OFF)
 add_subdirectory(bgfx.cmake)
 add_library(bgfx::bgfx ALIAS bgfx)
 
+# bgfx-imgui
+add_subdirectory(bgfx-imgui)
+
 # tracy
 add_library(TracyClient STATIC "")
 target_sources(TracyClient PRIVATE
