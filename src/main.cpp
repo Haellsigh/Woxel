@@ -1,6 +1,7 @@
 #include <bgfx/bgfx.h>
 #include <bgfx/platform.h>
 #include <spdlog/spdlog.h>
+#include <Tracy.hpp>
 
 // GLFW must be included after
 #define GLFW_INCLUDE_NONE
@@ -95,6 +96,7 @@ int main()
   });
 
   while (!glfwWindowShouldClose(mWindow)) {
+    FrameMark;
     glfwPollEvents();
 
     // clear, draw

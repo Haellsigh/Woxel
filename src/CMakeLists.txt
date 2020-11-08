@@ -52,4 +52,5 @@ target_link_libraries(Woxel PRIVATE
   glfw
   glad::glad
   bgfx::bgfx
+  TracyClient
 )
