@@ -7,11 +7,14 @@ project(Woxel
   VERSION 0.1.0
   DESCRIPTION "Woxel is an educational attempt at making a voxel-based game engine and game in C++."
   HOMEPAGE_URL "https://github.com/Haellsigh/Woxel"
-  LANGUAGES CXX)
+)
+
+set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
+include(woxel_utilities)
 
 # Future documentation target
 # add_subdirectory(docs)
 
-#
+# Engine, game and thirdparty code
 add_subdirectory(thirdparty)
 add_subdirectory(src)
