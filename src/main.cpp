@@ -102,8 +102,7 @@ int main()
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
   ImGuiIO& io = ImGui::GetIO();
-  io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-  (void)io;
+  io.Fonts->AddFontFromFileTTF("assets/fonts/roboto/Roboto-Regular.ttf", 16);
   ImGui::StyleColorsDark();
 
   ImGui_Implbgfx_Init(255);

@@ -36,7 +36,7 @@ endif()
 # Copy resources to build folder
 add_custom_command(TARGET Woxel PRE_BUILD
                    COMMAND ${CMAKE_COMMAND} -E copy_directory
-                   ${PROJECT_SOURCE_DIR}/resources/ $<TARGET_FILE_DIR:Woxel>/resources/)
+                   ${PROJECT_SOURCE_DIR}/assets/ $<TARGET_FILE_DIR:${PROJECT_NAME}>/assets/)
 
 ##### Libraries
 # Includes
@@ -53,7 +53,7 @@ target_link_libraries(Woxel PRIVATE
   glfw
   glad::glad
   bgfx::bgfx
-  bgfx-imgui
   imgui::imgui
+  bgfx-imgui
   TracyClient
 )
