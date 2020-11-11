@@ -3,6 +3,8 @@
 #include <woxel_engine/core/log.hh>
 #include <woxel_engine/debug/instrumentor.hh>
 
+#include <imgui.h>
+
 void woxel_game_layer::on_attach()
 {
     ZoneScoped;
@@ -25,6 +27,8 @@ void woxel_game_layer::on_update()
 
 void woxel_game_layer::on_imgui_render()
 {
+    ZoneScoped;
+    ImGui::ShowDemoWindow();
 }
 
 void woxel_game_layer::on_render()

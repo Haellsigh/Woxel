@@ -10,9 +10,9 @@ namespace woxel
 
 class layer_stack
 {
+  public:
     using layer_ptr = std::unique_ptr<layer>;
 
-  public:
     layer_stack() = default;
     ~layer_stack();
 
@@ -26,6 +26,12 @@ class layer_stack
     void on_update();
     void on_imgui_render();
     void on_render();
+
+    template <typename unary_function> void for_each(unary_function &&f)
+    {
+        for (auto &&layer : layers_)
+            f(layer);
+    }
 
   private:
     std::vector<layer_ptr> layers_;

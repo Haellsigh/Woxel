@@ -17,6 +17,7 @@ class layer
     virtual void on_detach()
     {
     }
+
     virtual void on_events()
     {
     }

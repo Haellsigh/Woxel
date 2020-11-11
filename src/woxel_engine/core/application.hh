@@ -1,6 +1,7 @@
 #pragma once
 
 #include "woxel_engine/core/layer_stack.hh"
+#include "woxel_engine/gui/imgui_layer.hh"
 
 int main(int argc, char **argv);
 
@@ -20,6 +21,9 @@ class application
 
     void close();
 
+    void *get_native_window();
+    static application *get();
+
   private:
     void run();
 
@@ -34,11 +38,14 @@ class application
     void mouseScrollCallback(GLFWwindow *window, double xoffset, double yoffset);
 
   private:
+    inline static application *instance_ = nullptr;
+
     bool running_ = true, initialization_successful_ = false;
-    layer_stack layer_stack_;
 
     GLFWwindow *window_;
     uint16_t view_id_ = 0;
+    layer_stack layer_stack_;
+    std::unique_ptr<imgui_layer> imgui_layer_;
 };
 
 application *create_application();
