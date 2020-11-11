@@ -1,3 +1,8 @@
+#pragma once
+
+#include "woxel_engine/core/application.hh"
+
+/*
 #include <bgfx/bgfx.h>
 #include <bgfx/platform.h>
 #include <imgui.h>
@@ -112,19 +117,6 @@ int main()
     ImGui_Implbgfx_Init(255);
     ImGui_ImplGlfw_InitForVulkan(mWindow, true);
 
-    /*
-    unsigned char* pixels;
-    io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
-
-    // Upload texture to graphics system
-    auto g_FontTexture = bgfx::createTexture2D((uint16_t)width,
-    (uint16_t)height, false, 1, bgfx::TextureFormat::BGRA8, 0,
-    bgfx::copy(pixels, width * height * 4));
-
-    // Store our identifier
-    io.Fonts->TexID = (void*)(intptr_t)g_FontTexture.idx;
-    */
-
     while (!glfwWindowShouldClose(mWindow))
     {
         FrameMark;
@@ -155,3 +147,4 @@ int main()
 
     return 0;
 }
+*/

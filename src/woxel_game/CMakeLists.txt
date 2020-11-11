@@ -5,7 +5,9 @@ project(woxel_game)
 add_executable(${PROJECT_NAME} "")
 
 target_sources(${PROJECT_NAME} PRIVATE
-  main.cpp
+  woxel_app.cpp
+  woxel_game_layer.cc
+  woxel_game_layer.hh
 )
 
 target_set_woxel_options(${PROJECT_NAME})
