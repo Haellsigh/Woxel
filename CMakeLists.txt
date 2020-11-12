@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.19)
 # Vcpkg as a submodule
 set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/scripts/buildsystems/vcpkg.cmake CACHE STRING "Vcpkg toolchain file")
 
-project(Woxel
+project(woxel
   DESCRIPTION "Woxel is an educational attempt at making a voxel-based game engine and game in C++."
   HOMEPAGE_URL "https://github.com/Haellsigh/Woxel"
 )

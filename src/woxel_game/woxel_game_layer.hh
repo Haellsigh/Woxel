@@ -6,19 +6,16 @@
 #include <woxel_engine/woxel_engine.hh>
 
 #include <bgfx/bgfx.h>
-#pragma warning(push)
-#pragma warning(disable : 4201)
-#include <glm/glm.hpp>
-#pragma warning(pop)
+#include <bx/math.h>
 
 struct transform {
-    glm::vec3 translation = {0.f, 0.f, 0.f};
-    glm::vec3 rotation    = {0.f, 0.f, 0.f};
-    glm::vec3 scale       = {0.f, 0.f, 0.f};
+    bx::Vec3 translation = {0.f, 0.f, 0.f};
+    bx::Vec3 rotation    = {0.f, 0.f, 0.f};
+    bx::Vec3 scale       = {0.f, 0.f, 0.f};
 };
 
 struct renderable_2d {
-    glm::vec4 color = {1.f, 1.f, 1.f, 1.f};
+    float color[4] = {1.f, 1.f, 1.f, 1.f};
 };
 
 class renderer2d_system : public woxel::system {

@@ -4,11 +4,6 @@
 #include <woxel_engine/debug/instrumentor.hh>
 #include <woxel_engine/scene/system.hh>
 
-#pragma warning(push)
-#pragma warning(disable : 4201)
-#include <glm/gtc/type_ptr.hpp>
-#include <glm/gtx/transform.hpp>
-#pragma warning(pop)
 #include <imgui.h>
 
 #include <fstream>
@@ -57,13 +52,16 @@ struct PosColorVertex {
 };
 
 static PosColorVertex cube_vertices[] = {
-    {-1.0f, 1.0f, 1.0f, 0xff000000},  //
-    {1.0f, 1.0f, 1.0f, 0xff0000ff},   //
-    {-1.0f, -1.0f, 1.0f, 0xff00ff00}, //
-    {1.0f, -1.0f, 1.0f, 0xff00ffff},  //
+    {-1.0f, 1.0f, 1.0f, 0xff000000},   {1.0f, 1.0f, 1.0f, 0xff0000ff},   //
+    {-1.0f, -1.0f, 1.0f, 0xff00ff00},  {1.0f, -1.0f, 1.0f, 0xff00ffff},  //
+    {-1.0f, 1.0f, -1.0f, 0xffff0000},  {1.0f, 1.0f, -1.0f, 0xffff00ff},  //
+    {-1.0f, -1.0f, -1.0f, 0xffffff00}, {1.0f, -1.0f, -1.0f, 0xffffffff}, //
 };
 
-static const uint16_t cube_tri_list[] = {0, 1, 2, 1, 3, 2};
+static const uint16_t cube_tri_list[] = {
+    0, 1, 2, 1, 3, 2, 4, 6, 5, 5, 6, 7, 0, 2, 4, 4, 2, 6, //
+    1, 5, 3, 5, 7, 3, 0, 4, 1, 4, 5, 1, 2, 3, 6, 6, 3, 7, //
+};
 
 static bgfx::ShaderHandle createShader(const std::string &shader, const char *name) {
     const bgfx::Memory *mem         = bgfx::copy(shader.data(), static_cast<uint32_t>(shader.size()));
@@ -102,7 +100,11 @@ void renderer2d_system::on_attach() {
     program_ = bgfx::createProgram(vsh_, fsh_, true);
 }
 
-void renderer2d_system::on_detach() {}
+void renderer2d_system::on_detach() {
+    bgfx::destroy(vbh_);
+    bgfx::destroy(ibh_);
+    bgfx::destroy(program_);
+}
 
 void renderer2d_system::on_update() {
     ZoneScoped;
@@ -122,15 +124,19 @@ void renderer2d_system::on_render() {
         ZoneScoped;
         (void)renderable_2d;
 
-        auto view = glm::mat4(1.f);
-        auto proj = glm::ortho(-1.f, 1.f, -1.f, 1.f, -1.f, 1.f);
+        float view[16];
+        bx::mtxIdentity(view);
+        float proj[16];
+        bx::mtxOrtho(proj, -2.f, 2.f, -2.f, 2.f, -1.f, 1.f, 0.f, bgfx::getCaps()->homogeneousDepth);
 
-        bgfx::setViewTransform(0, glm::value_ptr(view), glm::value_ptr(proj));
+        bgfx::setViewTransform(0, view, proj);
         bgfx::setVertexBuffer(0, vbh_);
         bgfx::setIndexBuffer(ibh_);
 
-        auto tr = glm::translate(transform.translation);
-        bgfx::setTransform(glm::value_ptr(tr));
+        float model[16];
+        bx::mtxIdentity(model);
+        bx::mtxTranslate(model, transform.translation.x, transform.translation.y, transform.translation.z);
+        bgfx::setTransform(model);
 
         bgfx::submit(0, program_);
     });
