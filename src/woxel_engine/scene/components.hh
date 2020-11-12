@@ -1,3 +1,3 @@
-#include "woxel_engine/core/layer.hh"
+#pragma once
 
 namespace woxel {} // namespace woxel

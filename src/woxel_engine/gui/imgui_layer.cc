@@ -6,13 +6,11 @@
 #include <imgui_impl_bgfx.h>
 #include <imgui_impl_glfw.h>
 
-namespace woxel
-{
+namespace woxel {
 
 constexpr uint16_t imgui_view_id = 255;
 
-void imgui_layer::on_attach()
-{
+void imgui_layer::on_attach() {
     ZoneScoped;
 
     IMGUI_CHECKVERSION();
@@ -26,8 +24,7 @@ void imgui_layer::on_attach()
     ImGui_ImplGlfw_InitForVulkan(static_cast<GLFWwindow *>(application::get()->get_native_window()), true);
 }
 
-void imgui_layer::on_detach()
-{
+void imgui_layer::on_detach() {
     ZoneScoped;
 
     ImGui_ImplGlfw_Shutdown();
@@ -35,12 +32,9 @@ void imgui_layer::on_detach()
     ImGui::DestroyContext();
 }
 
-void imgui_layer::on_events()
-{
-}
+void imgui_layer::on_events() {}
 
-void imgui_layer::on_render_begin()
-{
+void imgui_layer::on_render_begin() {
     ZoneScoped;
 
     ImGui_Implbgfx_NewFrame();
@@ -48,8 +42,7 @@ void imgui_layer::on_render_begin()
     ImGui::NewFrame();
 }
 
-void imgui_layer::on_render_end()
-{
+void imgui_layer::on_render_end() {
     ZoneScoped;
 
     ImGui::Render();

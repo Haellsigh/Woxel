@@ -15,21 +15,22 @@
 #include <GLFW/glfw3native.h>
 #include <imgui.h>
 
-namespace woxel
-{
+namespace woxel {
 
-application::application()
-{
+application::application() {
     ZoneScopedN("application::startup");
 
     instance_ = this;
 
     {
         ZoneScopedN("glfw initialization");
-        if (!glfwInit())
-        {
+        if (glfwInit() == 0) {
             log::core_error("failed to initialize glfw");
+            return;
         }
+
+        glfwSetErrorCallback(
+            [](int error, const char *description) { log::core_error("glfw error ({}): {}", error, description); });
 
         {
             ZoneScopedN("context window initialization");
@@ -42,15 +43,11 @@ application::application()
             glfwWindowHint(GLFW_MAXIMIZED, false);
 
             window_ = glfwCreateWindow(1600, 900, "Woxel", nullptr, nullptr);
-            if (!window_)
-            {
+            if (window_ == nullptr) {
                 log::core_error("failed to create context window");
                 glfwTerminate();
                 return;
             }
-
-            glfwMakeContextCurrent(window_);
-            glfwSwapInterval(0); // disable vsync
         }
 
         {
@@ -58,6 +55,9 @@ application::application()
             glfwSetWindowUserPointer(window_, this);
 
             // GLFW callbacks
+            glfwSetWindowCloseCallback(window_, [](GLFWwindow *window) {
+                static_cast<application *>(glfwGetWindowUserPointer(window))->close();
+            });
             glfwSetFramebufferSizeCallback(window_, [](GLFWwindow *window, int width, int height) {
                 static_cast<application *>(glfwGetWindowUserPointer(window))
                     ->framebufferSizeCallback(window, width, height);
@@ -92,8 +92,7 @@ application::application()
         init.resolution.height = height;
         init.resolution.reset = BGFX_RESET_NONE;
 
-        if (!bgfx::init(init))
-        {
+        if (!bgfx::init(init)) {
             log::error("failed to initialize bgfx");
             glfwTerminate();
             return;
@@ -103,18 +102,17 @@ application::application()
         bgfx::setViewRect(view_id_, 0, 0, bgfx::BackbufferRatio::Equal);
     }
 
-    imgui_layer_ = create_layer<imgui_layer>();
-    layer_stack_.push_overlay(std::move(imgui_layer_));
+    layer_stack_ = create_unique<layer_stack>();
+    imgui_layer_ = create_unique<imgui_layer>();
+    layer_stack_->push_overlay(std::move(imgui_layer_));
 
     initialization_successful_ = true;
 }
 
-application::~application()
-{
-    ZoneScopedN("application::shutdown");
+application::~application() {
+    ZoneScoped;
 
-    // shutdown imgui_layer
-    // imgui_layer_->on_detach();
+    layer_stack_.reset(nullptr);
 
     // shutdown renderer
     bgfx::shutdown();
@@ -123,36 +121,26 @@ application::~application()
     glfwTerminate();
 }
 
-void application::push_layer(std::unique_ptr<layer> layer)
-{
+void application::push_layer(std::unique_ptr<layer> layer) {
     ZoneScopedN("application::push_layer");
-    layer_stack_.push_layer(std::move(layer));
+    layer_stack_->push_layer(std::move(layer));
 }
 
-void application::push_overlay(std::unique_ptr<layer> overlay)
-{
+void application::push_overlay(std::unique_ptr<layer> overlay) {
     ZoneScopedN("application::push_overlay");
-    layer_stack_.push_overlay(std::move(overlay));
+    layer_stack_->push_overlay(std::move(overlay));
 }
 
-void application::close()
-{
-    ZoneScopedN("application::close");
+void application::close() {
+    ZoneScoped;
     running_ = false;
 }
 
-void *application::get_native_window()
-{
-    return window_;
-}
+auto application::get_native_window() -> void * { return window_; }
 
-application *application::get()
-{
-    return instance_;
-}
+auto application::get() -> application * { return instance_; }
 
-void application::run()
-{
+void application::run() {
     /**
      * Implement de "data parallel model":
      * https://www.gamasutra.com/view/feature/130247/multithreaded_game_engine_.php?page=3
@@ -178,32 +166,41 @@ void application::run()
      * use entt for messages/events:
      * https://github.com/skypjack/entt/wiki/Crash-Course:-events,-signals-and-everything-in-between
      */
-    ZoneScopedN("application::run");
+    ZoneScoped;
 
-    if (!initialization_successful_)
-    {
-        return;
-    }
+    if (!initialization_successful_) { return; }
 
-    while (running_)
-    {
-        ZoneScopedN("application::run_loop");
+    while (running_) {
+        ZoneScopedN("single run loop");
 
         {
             ZoneScopedN("glfw poll events");
             glfwPollEvents();
         }
 
-        running_ &= !static_cast<bool>(glfwWindowShouldClose(window_));
+        {
+            ZoneScopedN("layers on_update");
+            layer_stack_->each([](auto &&layer) { layer->on_update(); });
+        }
 
         // get time delta
 
         // render
-        imgui_layer_->on_render_begin();
+        {
+            ZoneScopedN("layers on_render");
+            layer_stack_->each([](auto &&layer) { layer->on_render(); });
+        }
 
-        layer_stack_.for_each([](const auto &layer) { layer->on_imgui_render(); });
+        {
+            ZoneScopedN("imgui render");
+            imgui_layer_->on_render_begin();
 
-        imgui_layer_->on_render_end();
+            {
+                layer_stack_->each([](auto &&layer) { layer->on_imgui_render(); });
+            }
+
+            imgui_layer_->on_render_end();
+        }
 
         {
             ZoneScopedN("glfw touch");
@@ -218,15 +215,13 @@ void application::run()
     }
 }
 
-void application::framebufferSizeCallback(GLFWwindow *window, int width, int height)
-{
+void application::framebufferSizeCallback(GLFWwindow *window, int width, int height) {
     (void)window;
     bgfx::reset(width, height);
     bgfx::setViewRect(view_id_, 0, 0, bgfx::BackbufferRatio::Equal);
 }
 
-void application::keyCallback(GLFWwindow *window, int key, int scancode, int action, int mods)
-{
+void application::keyCallback(GLFWwindow *window, int key, int scancode, int action, int mods) {
     (void)window;
     (void)key;
     (void)scancode;
@@ -234,23 +229,20 @@ void application::keyCallback(GLFWwindow *window, int key, int scancode, int act
     (void)mods;
 }
 
-void application::mousePositionCallback(GLFWwindow *window, double xpos, double ypos)
-{
+void application::mousePositionCallback(GLFWwindow *window, double xpos, double ypos) {
     (void)window;
     (void)xpos;
     (void)ypos;
 }
 
-void application::mouseButtonCallback(GLFWwindow *window, int button, int action, int mods)
-{
+void application::mouseButtonCallback(GLFWwindow *window, int button, int action, int mods) {
     (void)window;
     (void)button;
     (void)action;
     (void)mods;
 }
 
-void application::mouseScrollCallback(GLFWwindow *window, double xoffset, double yoffset)
-{
+void application::mouseScrollCallback(GLFWwindow *window, double xoffset, double yoffset) {
     (void)window;
     (void)xoffset;
     (void)yoffset;

@@ -11,7 +11,7 @@ target_sources(${PROJECT_NAME} PRIVATE
 add_subdirectory(core)
 add_subdirectory(debug)
 add_subdirectory(gui)
-
+add_subdirectory(scene)
 add_subdirectory(thirdparty)
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/..)
@@ -27,18 +27,22 @@ find_package(glfw3 CONFIG REQUIRED)
 find_package(glad CONFIG REQUIRED)
 find_package(imgui CONFIG REQUIRED)
 find_package(Taskflow CONFIG REQUIRED)
+find_package(EnTT CONFIG REQUIRED)
+find_package(glm CONFIG REQUIRED)
 
 # Linking
 target_link_libraries(${PROJECT_NAME}
   PUBLIC
   imgui::imgui
   TracyClient
+  EnTT::EnTT
+  glm
+  bgfx::bgfx
   PRIVATE
   fmt::fmt
   spdlog::spdlog_header_only
   glfw
   glad::glad
-  bgfx::bgfx
   bgfx-imgui
   Taskflow::Taskflow
 )

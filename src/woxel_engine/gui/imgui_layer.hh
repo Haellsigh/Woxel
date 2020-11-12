@@ -2,11 +2,9 @@
 
 #include "woxel_engine/core/layer.hh"
 
-namespace woxel
-{
+namespace woxel {
 
-class imgui_layer : public layer
-{
+class imgui_layer : public layer {
   public:
     imgui_layer() = default;
     ~imgui_layer() = default;

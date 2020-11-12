@@ -7,11 +7,9 @@ int main(int argc, char **argv);
 
 struct GLFWwindow;
 
-namespace woxel
-{
+namespace woxel {
 
-class application
-{
+class application {
   public:
     application();
     virtual ~application();
@@ -44,8 +42,10 @@ class application
 
     GLFWwindow *window_;
     uint16_t view_id_ = 0;
-    layer_stack layer_stack_;
+    std::unique_ptr<layer_stack> layer_stack_;
     std::unique_ptr<imgui_layer> imgui_layer_;
+
+    // systems
 };
 
 application *create_application();

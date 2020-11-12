@@ -1,17 +1,17 @@
 #pragma once
 
+#include "woxel_engine/core/base.hh"
 #include "woxel_engine/core/layer.hh"
+#include "woxel_engine/debug/instrumentor.hh"
 
 #include <memory>
 #include <vector>
 
-namespace woxel
-{
+namespace woxel {
 
-class layer_stack
-{
+class layer_stack {
   public:
-    using layer_ptr = std::unique_ptr<layer>;
+    using layer_ptr = unique<layer>;
 
     layer_stack() = default;
     ~layer_stack();
@@ -22,20 +22,20 @@ class layer_stack
     void pop_layer(layer_ptr layer);
     void pop_overlay(layer_ptr overlay);
 
-    void on_events();
-    void on_update();
-    void on_imgui_render();
-    void on_render();
+    template <typename unaryFunction> void each(unaryFunction &&f) {
+        ZoneScoped;
 
-    template <typename unary_function> void for_each(unary_function &&f)
-    {
-        for (auto &&layer : layers_)
-            f(layer);
+        // only the last layer is active
+        auto start = std::next(layers_.begin(), layers_count_);
+        if (layers_count_ > 0) { std::advance(start, -1); }
+
+        for (auto layer_it = start; layer_it != layers_.end(); layer_it++)
+            f(*layer_it);
     }
 
   private:
     std::vector<layer_ptr> layers_;
-    std::size_t overlays_begin_ = 0;
+    std::size_t layers_count_ = 0;
 };
 
 } // namespace woxel

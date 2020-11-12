@@ -1,4 +1,5 @@
 target_sources(${PROJECT_NAME} PRIVATE
+  base.hh
   entry_point.hh
   application.hh
   application.cc

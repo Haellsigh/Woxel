@@ -6,11 +6,9 @@
 #include <memory>
 #include <vector>
 
-namespace woxel
-{
+namespace woxel {
 
-void log::init()
-{
+void log::init() {
     std::array<spdlog::sink_ptr, 2> log_sinks = {
         std::make_shared<spdlog::sinks::stdout_color_sink_mt>(),
         std::make_shared<spdlog::sinks::basic_file_sink_mt>("woxel.log", true)};
