@@ -74,10 +74,14 @@ void renderer2d_system::on_attach() {
     auto &&reg = scene_->get_registry();
     (void)reg.group<transform, renderable_2d>();
 
-    for (int i = 0; i < 100; i++) {
-        auto entity = reg.create();
-        reg.emplace<transform>(entity);
-        reg.emplace<renderable_2d>(entity);
+    for (int i = -5; i < 5; i++) {
+        for (int j = -5; j < 5; j++) {
+            auto entity = reg.create();
+            reg.emplace<transform>(entity);
+            reg.emplace<renderable_2d>(entity);
+
+            reg.get<transform>(entity).translation = {static_cast<float>(i), static_cast<float>(j), 0};
+        }
     }
 
     bgfx::VertexLayout pos_col_vert_layout;
@@ -127,15 +131,15 @@ void renderer2d_system::on_render() {
         float view[16];
         bx::mtxIdentity(view);
         float proj[16];
-        bx::mtxOrtho(proj, -2.f, 2.f, -2.f, 2.f, -1.f, 1.f, 0.f, bgfx::getCaps()->homogeneousDepth);
+        bx::mtxOrtho(proj, -16.f, 16.f, -9.f, 9.f, -1.f, 1.f, 0.f, bgfx::getCaps()->homogeneousDepth);
 
         bgfx::setViewTransform(0, view, proj);
         bgfx::setVertexBuffer(0, vbh_);
         bgfx::setIndexBuffer(ibh_);
 
         float model[16];
-        bx::mtxIdentity(model);
-        bx::mtxTranslate(model, transform.translation.x, transform.translation.y, transform.translation.z);
+        bx::mtxSRT(model, 0.4f, 0.4f, 0.4f, 0.f, 0.f, 0.f, transform.translation.x, transform.translation.y,
+                   transform.translation.z);
         bgfx::setTransform(model);
 
         bgfx::submit(0, program_);

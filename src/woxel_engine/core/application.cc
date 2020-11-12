@@ -85,12 +85,12 @@ application::application() {
 
         bgfx::Init init;
         init.platformData.nwh = glfwGetWin32Window(window_);
-        init.type = bgfx::RendererType::Vulkan;
+        init.type             = bgfx::RendererType::Vulkan;
         int width, height;
         glfwGetWindowSize(window_, &width, &height);
-        init.resolution.width = width;
+        init.resolution.width  = width;
         init.resolution.height = height;
-        init.resolution.reset = BGFX_RESET_NONE;
+        init.resolution.reset  = BGFX_RESET_NONE;
 
         if (!bgfx::init(init)) {
             log::error("failed to initialize bgfx");
@@ -169,6 +169,8 @@ void application::run() {
     ZoneScoped;
 
     if (!initialization_successful_) { return; }
+
+    bgfx::setDebug(BGFX_DEBUG_STATS);
 
     while (running_) {
         ZoneScopedN("single run loop");

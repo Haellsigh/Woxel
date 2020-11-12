@@ -22,3 +22,23 @@ function(target_set_woxel_options target)
     target_compile_options(${target} PRIVATE -Werror -Wall -Wextra -Wconversion -Wsign-conversion)
   endif()
 endfunction()
+
+function(target_add_shader target shader_path shader_type)
+  get_filename_component(shader_dir ${shader_path} DIRECTORY)
+  get_filename_component(shader_ext ${shader_path} LAST_EXT)
+  get_filename_component(shader_name ${shader_path} NAME_WLE)
+
+  add_custom_command(
+    OUTPUT ${${target}_BINARY_DIR}/assets/shaders/${shader_dir}${shader_name}.bin
+    COMMAND shaderc -f ${shader_path} -o ${${target}_BINARY_DIR}/assets/shaders/${shader_dir}${shader_name}.bin --type ${shader_type} -i ./ -p spirv
+    DEPENDS ${woxel_SOURCE_DIR}/assets/shaders/${shader_path}
+    WORKING_DIRECTORY ${woxel_SOURCE_DIR}/assets/shaders
+    COMMENT "Compiling shader assets/shaders/${shader_path}"
+    VERBATIM
+  )
+  add_custom_target(
+    compile_shader_${shader_path} ALL DEPENDS ${${target}_BINARY_DIR}/assets/shaders/${shader_dir}${shader_name}.bin
+  )
+  target_sources(${target} PRIVATE ${woxel_SOURCE_DIR}/assets/shaders/${shader_path})
+  message(STATUS "Adding shader assets/shaders/${shader_path}")
+endfunction()
