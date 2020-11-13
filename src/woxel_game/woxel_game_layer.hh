@@ -5,7 +5,13 @@
 #include <woxel_engine/scene/system.hh>
 #include <woxel_engine/woxel_engine.hh>
 
+#include <Magnum/GL/Buffer.h>
+#include <Magnum/Shaders/Flat.h>
 #include <glm/glm.hpp>
+
+namespace Magnum::GL {
+class Mesh;
+} // namespace Magnum::GL
 
 struct transform {
     glm::vec3 translation = {0.f, 0.f, 0.f};
@@ -25,6 +31,9 @@ class renderer2d_system : public woxel::system {
     void on_render() final;
 
   private:
+    woxel::unique<Magnum::GL::Mesh> mesh_;
+    woxel::unique<Magnum::Shaders::Flat2D> shader_;
+    woxel::unique<Magnum::GL::Buffer> buffer_;
 };
 
 class woxel_game_layer : public woxel::layer {

@@ -4,63 +4,27 @@
 #include <woxel_engine/debug/instrumentor.hh>
 #include <woxel_engine/scene/system.hh>
 
+#include <Magnum/GL/DefaultFramebuffer.h>
+#include <Magnum/GL/Mesh.h>
+#include <Magnum/Math/Color.h>
+#include <Magnum/Math/Matrix3.h>
+#include <Magnum/Platform/GLContext.h>
 #include <imgui.h>
 
-#include <fstream>
-#include <iostream>
+using namespace Magnum;
 
-namespace fileops {
-
-inline static std::streamoff stream_size(std::istream &file) {
-    std::istream::pos_type current_pos = file.tellg();
-    if (current_pos == std::istream::pos_type(-1)) { return -1; }
-    file.seekg(0, std::istream::end);
-    std::istream::pos_type end_pos = file.tellg();
-    file.seekg(current_pos);
-    return end_pos - current_pos;
-}
-
-inline bool stream_read_string(std::istream &file, std::string &fileContents) {
-    std::streamoff len = stream_size(file);
-    if (len == -1) { return false; }
-    fileContents.resize(static_cast<std::string::size_type>(len));
-    file.read(&fileContents[0], fileContents.length());
-    return true;
-}
-
-inline bool read_file(const std::string &filename, std::string &fileContents) {
-    std::ifstream file(filename, std::ios::binary);
-    if (!file.is_open()) {
-        woxel::log::error("unable to open file {}", filename);
-        return false;
-    }
-    const bool success = stream_read_string(file, fileContents);
-    file.close();
-
-    if (!success) { woxel::log::error("unable to read file {}", filename); }
-
-    return success;
-}
-
-} // namespace fileops
-
-struct PosColorVertex {
-    float x;
-    float y;
-    float z;
-    uint32_t abgr;
+/* Setup the colored triangle */
+using namespace Math::Literals;
+struct TriangleVertex {
+    Vector2 position;
 };
-
-static PosColorVertex cube_vertices[] = {
-    {-1.0f, 1.0f, 1.0f, 0xff000000},   {1.0f, 1.0f, 1.0f, 0xff0000ff},   //
-    {-1.0f, -1.0f, 1.0f, 0xff00ff00},  {1.0f, -1.0f, 1.0f, 0xff00ffff},  //
-    {-1.0f, 1.0f, -1.0f, 0xffff0000},  {1.0f, 1.0f, -1.0f, 0xffff00ff},  //
-    {-1.0f, -1.0f, -1.0f, 0xffffff00}, {1.0f, -1.0f, -1.0f, 0xffffffff}, //
-};
-
-static const uint16_t cube_tri_list[] = {
-    0, 1, 2, 1, 3, 2, 4, 6, 5, 5, 6, 7, 0, 2, 4, 4, 2, 6, //
-    1, 5, 3, 5, 7, 3, 0, 4, 1, 4, 5, 1, 2, 3, 6, 6, 3, 7, //
+const TriangleVertex data[]{
+    {{-0.5f, -0.5f}}, //
+    {{-0.5f, 0.5f}},  //
+    {{0.5f, 0.5f}},   //
+    {{-0.5f, -0.5f}}, //
+    {{0.5f, 0.5f}},   //
+    {{0.5f, -0.5f}}   //
 };
 
 void renderer2d_system::on_attach() {
@@ -73,55 +37,55 @@ void renderer2d_system::on_attach() {
             reg.emplace<transform>(entity);
             reg.emplace<renderable_2d>(entity);
 
-            reg.get<transform>(entity).translation = {static_cast<float>(i), static_cast<float>(j), 0};
+            reg.get<transform>(entity).translation = {1.1f * static_cast<float>(i), 1.1f * static_cast<float>(j), 0};
         }
     }
 
-    std::string vshader;
-    if (!fileops::read_file("assets/shaders/vs_cubes.bin", vshader)) { return; }
+    /* Setup the colored triangle */
+    buffer_ = woxel::create_unique<GL::Buffer>();
+    buffer_->setData(data, GL::BufferUsage::StaticDraw);
 
-    std::string fshader;
-    if (!fileops::read_file("assets/shaders/fs_cubes.bin", fshader)) { return; }
+    mesh_ = woxel::create_unique<GL::Mesh>();
+    mesh_->setPrimitive(GL::MeshPrimitive::Triangles)
+        .setCount(6)
+        .addVertexBuffer(*buffer_, 0, Shaders::Flat2D::Position{});
+
+    shader_ = woxel::create_unique<Shaders::Flat2D>();
 }
 
 void renderer2d_system::on_detach() {}
 
 void renderer2d_system::on_update() {
     ZoneScoped;
-    scene_->get_registry().view<transform, renderable_2d>().each(
-        [](auto, const auto &transform, const auto &renderable_2d) {
-            ZoneScoped;
-            // change color here depending on frame index
-            (void)transform;
-            (void)renderable_2d;
-        });
+    auto time = std::chrono::high_resolution_clock::now().time_since_epoch().count();
+
+    scene_->get_registry().view<transform, renderable_2d>().each([&](auto, const auto &transform, auto &renderable_2d) {
+        ZoneScoped;
+        // change color here depending on frame index
+
+        renderable_2d.color.r = static_cast<float>((time % 5000000000) / 500000000. + transform.translation.x / 5);
+        renderable_2d.color.g = static_cast<float>((time % 1000000000) / 1000000000. + transform.translation.y / 5);
+        renderable_2d.color.b = static_cast<float>((time % 10000000000) / 10000000000. +
+                                                   transform.translation.x * transform.translation.y / 25);
+
+        (void)transform;
+    });
 }
 
 void renderer2d_system::on_render() {
     ZoneScoped;
 
-    /*
+    auto projection = Matrix3::projection({32.f, 18.f});
+
     scene_->get_registry().group<transform, renderable_2d>().each([&](auto, auto &transform, auto &renderable_2d) {
         ZoneScoped;
-        (void)renderable_2d;
 
-        float view[16];
-        bx::mtxIdentity(view);
-        float proj[16];
-        bx::mtxOrtho(proj, -16.f, 16.f, -9.f, 9.f, -1.f, 1.f, 0.f, bgfx::getCaps()->homogeneousDepth);
-
-        bgfx::setViewTransform(0, view, proj);
-        bgfx::setVertexBuffer(0, vbh_);
-        bgfx::setIndexBuffer(ibh_);
-
-        float model[16];
-        bx::mtxSRT(model, 0.4f, 0.4f, 0.4f, 0.f, 0.f, 0.f, transform.translation.x, transform.translation.y,
-                   transform.translation.z);
-        bgfx::setTransform(model);
-
-        bgfx::submit(0, program_);
+        auto translation = Matrix3::translation({transform.translation.x, transform.translation.y});
+        auto matrix      = projection * translation;
+        shader_->setTransformationProjectionMatrix(matrix);
+        shader_->setColor({renderable_2d.color.r, renderable_2d.color.g, renderable_2d.color.b, renderable_2d.color.a});
+        shader_->draw(*mesh_);
     });
-    */
 }
 
 void woxel_game_layer::on_attach() {

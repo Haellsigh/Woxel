@@ -64,8 +64,8 @@ void imgui_layer::on_render_end() {
 
     GL::Renderer::disable(GL::Renderer::Feature::Blending);
     GL::Renderer::disable(GL::Renderer::Feature::ScissorTest);
-    GL::Renderer::enable(GL::Renderer::Feature::FaceCulling);
-    GL::Renderer::enable(GL::Renderer::Feature::DepthTest);
+    GL::Renderer::disable(GL::Renderer::Feature::FaceCulling);
+    GL::Renderer::disable(GL::Renderer::Feature::DepthTest);
 }
 
 } // namespace woxel

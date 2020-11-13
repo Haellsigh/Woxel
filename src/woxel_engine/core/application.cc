@@ -94,7 +94,7 @@ application::application() {
 application::~application() {
     ZoneScoped;
 
-    // layer_stack_.reset(nullptr);
+    layer_stack_.reset(nullptr);
 
     // Shutdown context
     context_.reset(nullptr);
@@ -151,7 +151,7 @@ void application::run() {
 
     if (!initialization_successful_) { return; }
 
-    GL::defaultFramebuffer.clearColor({0.f, 0.f, 0.f});
+    // GL::defaultFramebuffer.clearColor({0.f, 0.f, 0.f});
 
     while (running_) {
         ZoneScopedN("single run loop");
@@ -214,6 +214,8 @@ void application::framebufferSizeCallback(GLFWwindow *window, int width, int hei
     imgui_layer_->on_framebuffer_resize({width, height});
 
     (void)window;
+    (void)width;
+    (void)height;
 
     // for (vector<my_class>::reverse_iterator i = my_vector.rbegin(); i != my_vector.rend(); ++i) {}
 }
