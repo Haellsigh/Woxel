@@ -21,6 +21,7 @@ class scene {
     entt::registry &get_registry();
 
     void on_update();
+    void on_imgui_render();
     void on_render();
 
   private:

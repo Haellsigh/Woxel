@@ -183,20 +183,19 @@ void application::run() {
 
         // render
         {
-            ZoneScopedN("Render");
-            GL::defaultFramebuffer.clear(GL::FramebufferClear::Color);
+            ZoneScopedN("Renderd");
+            GL::defaultFramebuffer.clear(GL::FramebufferClear::Color | GL::FramebufferClear::Depth);
             {
                 ZoneScopedN("layers on_render");
                 layer_stack_->each([](auto &&layer) { layer->on_render(); });
             }
             {
+
                 ZoneScopedN("layers on_imgui_render");
                 imgui_layer_->on_render_begin();
-
                 {
                     layer_stack_->each([](auto &&layer) { layer->on_imgui_render(); });
                 }
-
                 imgui_layer_->on_render_end();
             }
             {

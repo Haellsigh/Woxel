@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.19)
 
 project(woxel_game)
 
-add_executable(${PROJECT_NAME} WIN32 "")
+add_executable(${PROJECT_NAME} "")
 
 target_sources(${PROJECT_NAME} PRIVATE
   woxel_app.cpp

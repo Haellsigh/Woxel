@@ -23,6 +23,12 @@ void scene::on_update() {
     }
 }
 
+void scene::on_imgui_render() {
+    for (auto &&system : systems_) {
+        system->on_imgui_render();
+    }
+}
+
 void scene::on_render() {
     for (auto &&system : systems_) {
         system->on_render();
