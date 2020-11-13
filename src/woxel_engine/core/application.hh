@@ -7,6 +7,13 @@ int main(int argc, char **argv);
 
 struct GLFWwindow;
 
+namespace Magnum {
+namespace Platform {
+class GLContext;
+}
+namespace GL {}
+} // namespace Magnum
+
 namespace woxel {
 
 class application {
@@ -41,11 +48,11 @@ class application {
     bool running_ = true, initialization_successful_ = false;
 
     GLFWwindow *window_;
+    std::unique_ptr<Magnum::Platform::GLContext> context_;
+
     uint16_t view_id_ = 0;
     std::unique_ptr<layer_stack> layer_stack_;
     std::unique_ptr<imgui_layer> imgui_layer_;
-
-    // systems
 };
 
 application *create_application();

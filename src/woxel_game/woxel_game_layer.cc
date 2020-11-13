@@ -63,13 +63,6 @@ static const uint16_t cube_tri_list[] = {
     1, 5, 3, 5, 7, 3, 0, 4, 1, 4, 5, 1, 2, 3, 6, 6, 3, 7, //
 };
 
-static bgfx::ShaderHandle createShader(const std::string &shader, const char *name) {
-    const bgfx::Memory *mem         = bgfx::copy(shader.data(), static_cast<uint32_t>(shader.size()));
-    const bgfx::ShaderHandle handle = bgfx::createShader(mem);
-    bgfx::setName(handle, name);
-    return handle;
-}
-
 void renderer2d_system::on_attach() {
     auto &&reg = scene_->get_registry();
     (void)reg.group<transform, renderable_2d>();
@@ -84,31 +77,14 @@ void renderer2d_system::on_attach() {
         }
     }
 
-    bgfx::VertexLayout pos_col_vert_layout;
-    pos_col_vert_layout.begin()
-        .add(bgfx::Attrib::Position, 3, bgfx::AttribType::Float)
-        .add(bgfx::Attrib::Color0, 4, bgfx::AttribType::Uint8, true)
-        .end();
-    vbh_ = bgfx::createVertexBuffer(bgfx::makeRef(cube_vertices, sizeof(cube_vertices)), pos_col_vert_layout);
-    ibh_ = bgfx::createIndexBuffer(bgfx::makeRef(cube_tri_list, sizeof(cube_tri_list)));
-
     std::string vshader;
     if (!fileops::read_file("assets/shaders/vs_cubes.bin", vshader)) { return; }
 
     std::string fshader;
     if (!fileops::read_file("assets/shaders/fs_cubes.bin", fshader)) { return; }
-
-    vsh_ = createShader(vshader, "vshader");
-    fsh_ = createShader(fshader, "fshader");
-
-    program_ = bgfx::createProgram(vsh_, fsh_, true);
 }
 
-void renderer2d_system::on_detach() {
-    bgfx::destroy(vbh_);
-    bgfx::destroy(ibh_);
-    bgfx::destroy(program_);
-}
+void renderer2d_system::on_detach() {}
 
 void renderer2d_system::on_update() {
     ZoneScoped;
@@ -124,6 +100,7 @@ void renderer2d_system::on_update() {
 void renderer2d_system::on_render() {
     ZoneScoped;
 
+    /*
     scene_->get_registry().group<transform, renderable_2d>().each([&](auto, auto &transform, auto &renderable_2d) {
         ZoneScoped;
         (void)renderable_2d;
@@ -144,6 +121,7 @@ void renderer2d_system::on_render() {
 
         bgfx::submit(0, program_);
     });
+    */
 }
 
 void woxel_game_layer::on_attach() {
@@ -152,8 +130,6 @@ void woxel_game_layer::on_attach() {
 }
 
 void woxel_game_layer::on_detach() { ZoneScoped; }
-
-void woxel_game_layer::on_events() {}
 
 void woxel_game_layer::on_update() { scene_.on_update(); }
 

@@ -1,9 +1,6 @@
 [submodule "vcpkg"]
 	path = vcpkg
 	url = https://github.com/microsoft/vcpkg
-[submodule "src/woxel_engine/thirdparty/bgfx.cmake"]
-	path = src/woxel_engine/thirdparty/bgfx.cmake
-	url = https://github.com/Haellsigh/bgfx.cmake.git
 [submodule "src/woxel_engine/thirdparty/tracy"]
 	path = src/woxel_engine/thirdparty/tracy
 	url = https://github.com/wolfpld/tracy.git

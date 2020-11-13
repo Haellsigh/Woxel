@@ -2,18 +2,14 @@
 #include "woxel_engine/core/log.hh"
 #include "woxel_engine/debug/instrumentor.hh"
 
-#include <bgfx/bgfx.h>
-#include <bgfx/platform.h>
-#if BX_PLATFORM_LINUX
-#define GLFW_EXPOSE_NATIVE_X11
-#elif BX_PLATFORM_WINDOWS
-#define GLFW_EXPOSE_NATIVE_WIN32
-#elif BX_PLATFORM_OSX
-#define GLFW_EXPOSE_NATIVE_COCOA
-#endif
+#include <Magnum/GL/DefaultFramebuffer.h>
+#include <Magnum/Math/Color.h>
+#include <Magnum/Platform/GLContext.h>
+// glfw must be last
+#define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
-#include <GLFW/glfw3native.h>
-#include <imgui.h>
+
+using namespace Magnum;
 
 namespace woxel {
 
@@ -37,7 +33,6 @@ application::application() {
             glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
             glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
             glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-            glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
             // glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, true);
             glfwWindowHint(GLFW_RESIZABLE, true);
             glfwWindowHint(GLFW_MAXIMIZED, false);
@@ -49,6 +44,10 @@ application::application() {
                 return;
             }
         }
+
+        // Create Context and Load OpenGL Functions
+        glfwMakeContextCurrent(window_);
+        glfwSwapInterval(0); // Disable VSync
 
         {
             ZoneScopedN("callbacks initialization");
@@ -79,32 +78,15 @@ application::application() {
         }
     }
 
-    {
-        ZoneScopedN("bgfx initialization");
-        // bgfx::renderFrame(); // set singlethreaded mode
-
-        bgfx::Init init;
-        init.platformData.nwh = glfwGetWin32Window(window_);
-        init.type             = bgfx::RendererType::Vulkan;
-        int width, height;
-        glfwGetWindowSize(window_, &width, &height);
-        init.resolution.width  = width;
-        init.resolution.height = height;
-        init.resolution.reset  = BGFX_RESET_NONE;
-
-        if (!bgfx::init(init)) {
-            log::error("failed to initialize bgfx");
-            glfwTerminate();
-            return;
-        }
-
-        bgfx::setViewClear(view_id_, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0x6495EDFF, 1.0f, 0);
-        bgfx::setViewRect(view_id_, 0, 0, bgfx::BackbufferRatio::Equal);
-    }
-
     layer_stack_ = create_unique<layer_stack>();
     imgui_layer_ = create_unique<imgui_layer>();
-    layer_stack_->push_overlay(std::move(imgui_layer_));
+    imgui_layer_->on_attach();
+
+    {
+        ZoneScopedN("magnum initialization");
+
+        context_ = create_unique<Platform::GLContext>();
+    }
 
     initialization_successful_ = true;
 }
@@ -112,12 +94,11 @@ application::application() {
 application::~application() {
     ZoneScoped;
 
-    layer_stack_.reset(nullptr);
+    // layer_stack_.reset(nullptr);
 
-    // shutdown renderer
-    bgfx::shutdown();
-
-    // shutdown window
+    // Shutdown context
+    context_.reset(nullptr);
+    // Shutdown window
     glfwTerminate();
 }
 
@@ -170,57 +151,71 @@ void application::run() {
 
     if (!initialization_successful_) { return; }
 
-    bgfx::setDebug(BGFX_DEBUG_STATS);
+    GL::defaultFramebuffer.clearColor({0.f, 0.f, 0.f});
 
     while (running_) {
         ZoneScopedN("single run loop");
 
+        // events
+        // 1. poll all glfw events which will call the callbacks
+        // (signals and shit are already connected beforehand by each layer)
+        // 2. in the callbacks functions (keyCallback, ...) fire the corresponding signals
+        // 3. profit because each layer will get the good events, propagation will stop when needed, etc
+        // note: we can't use entt's events for that, i think, because we can't stop propagation of signals
         {
-            ZoneScopedN("glfw poll events");
-            glfwPollEvents();
+            ZoneScopedN("Events");
+            {
+                ZoneScopedN("glfw poll events");
+                glfwPollEvents();
+            }
+            FrameMarkNamed("Events");
         }
 
+        // update
         {
-            ZoneScopedN("layers on_update");
-            layer_stack_->each([](auto &&layer) { layer->on_update(); });
+            ZoneScopedN("Update");
+            {
+                ZoneScopedN("layers on_update");
+                layer_stack_->each([](auto &&layer) { layer->on_update(); });
+            }
+            FrameMarkNamed("Update");
         }
-
-        // get time delta
 
         // render
         {
-            ZoneScopedN("layers on_render");
-            layer_stack_->each([](auto &&layer) { layer->on_render(); });
-        }
-
-        {
-            ZoneScopedN("imgui render");
-            imgui_layer_->on_render_begin();
-
+            ZoneScopedN("Render");
+            GL::defaultFramebuffer.clear(GL::FramebufferClear::Color);
             {
-                layer_stack_->each([](auto &&layer) { layer->on_imgui_render(); });
+                ZoneScopedN("layers on_render");
+                layer_stack_->each([](auto &&layer) { layer->on_render(); });
             }
+            {
+                ZoneScopedN("layers on_imgui_render");
+                imgui_layer_->on_render_begin();
 
-            imgui_layer_->on_render_end();
-        }
+                {
+                    layer_stack_->each([](auto &&layer) { layer->on_imgui_render(); });
+                }
 
-        {
-            ZoneScopedN("glfw touch");
-            bgfx::touch(view_id_);
+                imgui_layer_->on_render_end();
+            }
+            {
+                ZoneScopedN("glfw swap buffers");
+                glfwSwapBuffers(window_);
+            }
+            FrameMarkNamed("Render");
         }
-
-        {
-            ZoneScopedN("bgfx::frame");
-            bgfx::frame();
-        }
-        FrameMark;
     }
 }
 
 void application::framebufferSizeCallback(GLFWwindow *window, int width, int height) {
+
+    GL::defaultFramebuffer.setViewport({{}, {width, height}});
+    imgui_layer_->on_framebuffer_resize({width, height});
+
     (void)window;
-    bgfx::reset(width, height);
-    bgfx::setViewRect(view_id_, 0, 0, bgfx::BackbufferRatio::Equal);
+
+    // for (vector<my_class>::reverse_iterator i = my_vector.rbegin(); i != my_vector.rend(); ++i) {}
 }
 
 void application::keyCallback(GLFWwindow *window, int key, int scancode, int action, int mods) {
