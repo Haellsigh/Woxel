@@ -75,6 +75,8 @@ application::application() {
                 static_cast<application *>(glfwGetWindowUserPointer(window))
                     ->mousePositionCallback(window, xoffset, yoffset);
             });
+
+            // message_bus_ = create_unique<message_bus>();
         }
     }
 
@@ -167,8 +169,10 @@ void application::run() {
         {
             ZoneScopedN("Events");
             {
-                ZoneScopedN("glfw poll events");
-                glfwPollEvents();
+                {
+                    ZoneScopedN("glfw poll events");
+                    glfwPollEvents();
+                }
             }
             FrameMarkNamed("Events");
         }

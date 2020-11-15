@@ -4,3 +4,6 @@
 [submodule "src/woxel_engine/thirdparty/tracy"]
 	path = src/woxel_engine/thirdparty/tracy
 	url = https://github.com/wolfpld/tracy.git
+[submodule "src/woxel_engine/thirdparty/ctti"]
+	path = src/woxel_engine/thirdparty/ctti
+	url = https://github.com/Manu343726/ctti.git

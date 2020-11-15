@@ -11,18 +11,10 @@ duration::duration(float seconds) : d_(as_duration(seconds)) {}
 
 duration::operator float() const { return ::woxel::as_seconds(d_); }
 
-auto duration::as_seconds() const -> float
-{
-    return ::woxel::as_seconds(d_);
-}
-auto duration::as_milliseconds() const -> float
-{
-    return ::woxel::as_milliseconds(d_);
-}
-auto duration::as_microseconds() const -> float
-{
-    return ::woxel::as_microseconds(d_);
-}
+auto duration::as_seconds() const -> float { return ::woxel::as_seconds(d_); }
+auto duration::as_milliseconds() const -> float { return ::woxel::as_milliseconds(d_); }
+auto duration::as_microseconds() const -> float { return ::woxel::as_microseconds(d_); }
+auto duration::as_nanoseconds() const -> float { return ::woxel::as_nanoseconds(d_); }
 
 // stopwatch
 
@@ -31,10 +23,7 @@ void stopwatch::start() {
     lap_start_ = start_;
 }
 
-auto stopwatch::elapsed() -> duration
-{
-    return clock::now() - start_;
-}
+auto stopwatch::elapsed() -> duration { return clock::now() - start_; }
 
 auto stopwatch::restart() -> duration {
     auto const &now = clock::now();
@@ -43,22 +32,15 @@ auto stopwatch::restart() -> duration {
     return last_lap_total_;
 }
 
-auto stopwatch::lap() -> duration
-{
+auto stopwatch::lap() -> duration {
     auto const &now = clock::now();
     last_lap_       = now - std::exchange(lap_start_, now);
     last_lap_total_ = now - start_;
     return last_lap_;
 }
 
-auto stopwatch::last_lap() const -> duration
-{
-    return last_lap_;
-}
+auto stopwatch::last_lap() const -> duration { return last_lap_; }
 
-auto stopwatch::last_lap_total() const -> duration
-{
-    return last_lap_total_;
-}
+auto stopwatch::last_lap_total() const -> duration { return last_lap_total_; }
 
 } // namespace woxel

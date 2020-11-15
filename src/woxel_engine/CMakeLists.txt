@@ -11,6 +11,7 @@ target_sources(${PROJECT_NAME} PRIVATE
 add_subdirectory(core)
 add_subdirectory(debug)
 add_subdirectory(gui)
+add_subdirectory(messages)
 add_subdirectory(scene)
 add_subdirectory(thirdparty)
 
@@ -64,4 +65,5 @@ target_link_libraries(${PROJECT_NAME}
     Magnum::Shaders
     #MagnumIntegration::Glm
     Taskflow::Taskflow
+    ctti
 )

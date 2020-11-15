@@ -6,3 +6,6 @@ target_sources(TracyClient PRIVATE
 target_include_directories(TracyClient PUBLIC
   tracy
 )
+
+# ctti
+add_subdirectory(ctti)

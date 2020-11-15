@@ -36,7 +36,7 @@ class application {
   private:
     friend int ::main(int, char **);
 
-    // Callbacks
+    // Events
     void framebufferSizeCallback(GLFWwindow *window, int width, int height);
     void keyCallback(GLFWwindow *window, int key, int scancode, int action, int mods);
     void mousePositionCallback(GLFWwindow *window, double xpos, double ypos);
@@ -50,7 +50,7 @@ class application {
     stopwatch stopwatch_update_;
 
     GLFWwindow *window_;
-    std::unique_ptr<Magnum::Platform::GLContext> context_;
+    unique<Magnum::Platform::GLContext> context_;
 
     uint16_t view_id_ = 0;
     std::unique_ptr<layer_stack> layer_stack_;

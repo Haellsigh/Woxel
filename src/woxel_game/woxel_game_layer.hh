@@ -12,6 +12,15 @@
 #include <Magnum/Shaders/Phong.h>
 #include <glm/glm.hpp>
 
+struct msg1 {
+    int data = 10;
+};
+
+struct msg_big {
+    std::string some, more, data;
+    std::array<float, 100> lots;
+};
+
 class woxel_game_layer : public woxel::layer {
   public:
     woxel_game_layer()  = default;
@@ -24,5 +33,10 @@ class woxel_game_layer : public woxel::layer {
     void on_render() final;
 
   private:
+    bool on_msg1(const msg1 &message);
+    bool on_msg_big(const msg_big &message);
+
+  private:
     woxel::scene scene_;
+    std::size_t total_ = 0;
 };

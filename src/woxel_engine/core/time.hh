@@ -7,6 +7,7 @@ namespace woxel {
 using f_sec   = std::chrono::duration<float>;
 using f_milli = std::chrono::duration<float, std::milli>;
 using f_micro = std::chrono::duration<float, std::micro>;
+using f_nano  = std::chrono::duration<float, std::nano>;
 
 using clock      = std::chrono::high_resolution_clock;
 using time_point = clock::time_point;
@@ -17,6 +18,7 @@ constexpr clock::duration as_duration(float seconds) {
 constexpr float as_seconds(clock::duration d) { return std::chrono::duration_cast<f_sec>(d).count(); }
 constexpr float as_milliseconds(clock::duration d) { return std::chrono::duration_cast<f_milli>(d).count(); }
 constexpr float as_microseconds(clock::duration d) { return std::chrono::duration_cast<f_micro>(d).count(); }
+constexpr float as_nanoseconds(clock::duration d) { return std::chrono::duration_cast<f_nano>(d).count(); }
 
 struct duration {
     duration(clock::duration d);
@@ -29,6 +31,7 @@ struct duration {
     float as_seconds() const;
     float as_milliseconds() const;
     float as_microseconds() const;
+    float as_nanoseconds() const;
 
   private:
     clock::duration d_;
