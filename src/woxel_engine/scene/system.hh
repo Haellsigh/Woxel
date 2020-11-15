@@ -1,6 +1,7 @@
 #pragma once
 
-#include <woxel_engine/scene/scene.hh>
+#include "woxel_engine/core/time.hh"
+#include "woxel_engine/scene/scene.hh"
 
 #include <entt/entity/registry.hpp>
 
@@ -14,7 +15,7 @@ class system {
     virtual void on_attach() {}
     virtual void on_detach() {}
 
-    virtual void on_update() {}
+    virtual void on_update(stopwatch const &) {}
     virtual void on_imgui_render() {}
     virtual void on_render() {}
 

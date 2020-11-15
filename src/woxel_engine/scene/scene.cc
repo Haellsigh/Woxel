@@ -17,9 +17,9 @@ void scene::push_system(unique<system> system) {
 
 auto scene::get_registry() -> entt::registry & { return registry_; }
 
-void scene::on_update() {
+void scene::on_update(stopwatch const &s) {
     for (auto &&system : systems_) {
-        system->on_update();
+        system->on_update(s);
     }
 }
 

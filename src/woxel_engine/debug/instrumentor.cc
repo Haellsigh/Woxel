@@ -2,8 +2,9 @@
 
 #include <cstdlib>
 
-void *operator new(std::size_t count) {
-    auto ptr = std::malloc(count);
+auto operator new(std::size_t count) -> void *
+{
+    auto *ptr = std::malloc(count);
     TracyAlloc(ptr, count);
     return ptr;
 }

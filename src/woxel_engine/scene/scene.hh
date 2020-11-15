@@ -1,9 +1,9 @@
 #pragma once
 
 #include "woxel_engine/core/base.hh"
+#include "woxel_engine/core/time.hh"
 
 #include <entt/entt.hpp>
-#include <entt/signal/delegate.hpp>
 
 #include <vector>
 
@@ -20,7 +20,7 @@ class scene {
 
     entt::registry &get_registry();
 
-    void on_update();
+    void on_update(stopwatch const &s);
     void on_imgui_render();
     void on_render();
 

@@ -10,6 +10,9 @@ target_sources(${PROJECT_NAME} PRIVATE
   woxel_game_layer.hh
 )
 
+add_subdirectory(components)
+add_subdirectory(systems)
+
 target_set_woxel_options(${PROJECT_NAME})
 
 ##### Pre build actions

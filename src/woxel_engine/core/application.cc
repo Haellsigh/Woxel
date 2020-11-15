@@ -151,6 +151,8 @@ void application::run() {
 
     if (!initialization_successful_) { return; }
 
+    stopwatch_update_.start();
+
     // GL::defaultFramebuffer.clearColor({0.f, 0.f, 0.f});
 
     while (running_) {
@@ -173,10 +175,12 @@ void application::run() {
 
         // update
         {
+            // stopwatch_update_.
             ZoneScopedN("Update");
             {
                 ZoneScopedN("layers on_update");
-                layer_stack_->each([](auto &&layer) { layer->on_update(); });
+                stopwatch_update_.lap();
+                layer_stack_->each([&](auto &&layer) { layer->on_update(stopwatch_update_); });
             }
             FrameMarkNamed("Update");
         }
@@ -187,14 +191,14 @@ void application::run() {
             GL::defaultFramebuffer.clear(GL::FramebufferClear::Color | GL::FramebufferClear::Depth);
             {
                 ZoneScopedN("layers on_render");
-                layer_stack_->each([](auto &&layer) { layer->on_render(); });
+                layer_stack_->each([&](auto &&layer) { layer->on_render(); });
             }
             {
 
                 ZoneScopedN("layers on_imgui_render");
                 imgui_layer_->on_render_begin();
                 {
-                    layer_stack_->each([](auto &&layer) { layer->on_imgui_render(); });
+                    layer_stack_->each([&](auto &&layer) { layer->on_imgui_render(); });
                 }
                 imgui_layer_->on_render_end();
             }

@@ -22,7 +22,7 @@ class layer_stack {
     void pop_layer(layer_ptr layer);
     void pop_overlay(layer_ptr overlay);
 
-    template <typename unaryFunction> void each(unaryFunction &&f) {
+    template <typename unary_function> void each(unary_function &&f) {
         ZoneScoped;
 
         // only the last layer is active

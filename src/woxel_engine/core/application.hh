@@ -1,6 +1,7 @@
 #pragma once
 
 #include "woxel_engine/core/layer_stack.hh"
+#include "woxel_engine/core/time.hh"
 #include "woxel_engine/gui/imgui_layer.hh"
 
 int main(int argc, char **argv);
@@ -46,6 +47,7 @@ class application {
     inline static application *instance_ = nullptr;
 
     bool running_ = true, initialization_successful_ = false;
+    stopwatch stopwatch_update_;
 
     GLFWwindow *window_;
     std::unique_ptr<Magnum::Platform::GLContext> context_;

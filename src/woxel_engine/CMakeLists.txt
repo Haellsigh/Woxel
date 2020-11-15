@@ -16,16 +16,16 @@ add_subdirectory(thirdparty)
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/..)
 target_set_woxel_options(${PROJECT_NAME})
-target_compile_options(${PROJECT_NAME} PUBLIC /wd4251) # disable warning C4251
+target_compile_options(${PROJECT_NAME} PUBLIC /wd4251 /wd4244) # disable warning C4251 and C4244
 target_compile_definitions(${PROJECT_NAME} PRIVATE IMGUI_IMPL_OPENGL_LOADER_CUSTOM=<Magnum/Platform/GLContext.h>)
 # Enable tracy in debug mode only
 #target_compile_definitions(TracyClient PUBLIC "$<$<CONFIG:DEBUG>:TRACY_ENABLE>")
 target_compile_definitions(TracyClient PUBLIC TRACY_ENABLE)
+target_compile_definitions(${PROJECT_NAME} PRIVATE SPDLOG_FMT_EXTERNAL)
 
 ##### Libraries
 # Includes
 find_package(fmt CONFIG REQUIRED)
-target_compile_definitions(${PROJECT_NAME} PRIVATE SPDLOG_FMT_EXTERNAL)
 find_package(spdlog CONFIG REQUIRED)
 find_package(glfw3 CONFIG REQUIRED)
 find_package(imgui CONFIG REQUIRED)
@@ -52,7 +52,7 @@ target_link_libraries(${PROJECT_NAME}
     EnTT::EnTT
     glm
     #PRIVATE
-    fmt::fmt
+    fmt::fmt-header-only
     spdlog::spdlog_header_only
     glfw
     Corrade::Main
