@@ -218,13 +218,11 @@ void application::run() {
 void application::framebufferSizeCallback(GLFWwindow *window, int width, int height) {
 
     GL::defaultFramebuffer.setViewport({{}, {width, height}});
-    imgui_layer_->on_framebuffer_resize({width, height});
+    imgui_layer_->publish(messages::framebuffer_size{width, height});
 
     (void)window;
     (void)width;
     (void)height;
-
-    // for (vector<my_class>::reverse_iterator i = my_vector.rbegin(); i != my_vector.rend(); ++i) {}
 }
 
 void application::keyCallback(GLFWwindow *window, int key, int scancode, int action, int mods) {
@@ -233,12 +231,16 @@ void application::keyCallback(GLFWwindow *window, int key, int scancode, int act
     (void)scancode;
     (void)action;
     (void)mods;
+
+    layer_stack_->publish(messages::key{key, scancode, action, mods});
 }
 
 void application::mousePositionCallback(GLFWwindow *window, double xpos, double ypos) {
     (void)window;
     (void)xpos;
     (void)ypos;
+
+    layer_stack_->publish(messages::mouse_position{xpos, ypos});
 }
 
 void application::mouseButtonCallback(GLFWwindow *window, int button, int action, int mods) {
@@ -246,12 +248,16 @@ void application::mouseButtonCallback(GLFWwindow *window, int button, int action
     (void)button;
     (void)action;
     (void)mods;
+
+    layer_stack_->publish(messages::mouse_button{button, action, mods});
 }
 
 void application::mouseScrollCallback(GLFWwindow *window, double xoffset, double yoffset) {
     (void)window;
     (void)xoffset;
     (void)yoffset;
+
+    layer_stack_->publish(messages::mouse_scroll{xoffset, yoffset});
 }
 
 } // namespace woxel

@@ -1,6 +1,8 @@
 #pragma once
 
 #include "woxel_engine/core/layer.hh"
+#include "woxel_engine/messages/messages.hh"
+#include "woxel_engine/messages/observer.hh"
 
 #include <array>
 
@@ -16,7 +18,7 @@ class imgui_layer : public layer {
     void on_attach() override;
     void on_detach() override;
 
-    void on_framebuffer_resize(std::array<int, 2> const &size);
+    bool on_framebuffer_resize(messages::framebuffer_size const &size);
     static void on_render_begin();
     static void on_render_end();
 

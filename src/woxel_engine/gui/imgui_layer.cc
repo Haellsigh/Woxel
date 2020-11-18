@@ -24,6 +24,8 @@ void imgui_layer::on_attach() {
 
     ImGui_ImplGlfw_InitForOpenGL(static_cast<GLFWwindow *>(application::get()->get_native_window()), true);
     ImGui_ImplOpenGL3_Init("#version 150");
+
+    subscribe<messages::framebuffer_size, &imgui_layer::on_framebuffer_resize>(this);
 }
 
 void imgui_layer::on_detach() {
@@ -34,11 +36,13 @@ void imgui_layer::on_detach() {
     ImGui::DestroyContext();
 }
 
-void imgui_layer::on_framebuffer_resize(std::array<int, 2> const &size) {
-    if (context_ == nullptr) { return; }
+bool imgui_layer::on_framebuffer_resize(messages::framebuffer_size const &size) {
+    if (context_ == nullptr) { return false; }
 
     ImGui::SetCurrentContext(context_);
-    ImGui::GetIO().DisplaySize = ImVec2{static_cast<float>(size[0]), static_cast<float>(size[1])};
+    ImGui::GetIO().DisplaySize = ImVec2{static_cast<float>(size.width), static_cast<float>(size.height)};
+
+    return true;
 }
 
 void imgui_layer::on_render_begin() {

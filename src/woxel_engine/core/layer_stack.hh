@@ -3,7 +3,6 @@
 #include "woxel_engine/core/base.hh"
 #include "woxel_engine/core/layer.hh"
 #include "woxel_engine/debug/instrumentor.hh"
-#include "woxel_engine/messages/message.hh"
 
 #include <memory>
 #include <vector>
@@ -23,7 +22,7 @@ class layer_stack {
     void pop_layer(layer_ptr layer);
     void pop_overlay(layer_ptr overlay);
 
-    template <typename message_type> bool on_message(const message_type &message) {
+    template <typename message_type> bool publish(const message_type &message) {
         ZoneScoped;
 
         // from last overlay to first layer in reverse
@@ -31,7 +30,7 @@ class layer_stack {
         if (layers_count_ > 0) { std::advance(end, 1); }
 
         for (auto layer_it = layers_.rbegin(); layer_it != end; ++layer_it)
-            if ((*layer_it)->on_message(message)) return true;
+            if ((*layer_it)->publish(message)) return true;
 
         return false;
     }
