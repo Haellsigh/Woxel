@@ -4,6 +4,7 @@
 #include <woxel_engine/core/log.hh>
 #include <woxel_engine/debug/instrumentor.hh>
 #include <woxel_engine/scene/system.hh>
+#include <woxel_engine/scene/world/chunk_manager.hh>
 
 #include <imgui.h>
 
@@ -13,30 +14,11 @@ bool f(woxel::messages::mouse_button const &b) { return b.button == 0; }
 
 void woxel_game_layer::on_attach() {
     ZoneScoped;
-    scene_.push_system(woxel::create_unique<metaball_renderer>());
+    // scene_.push_system(woxel::create_unique<metaball_renderer>());
+    scene_.push_system(woxel::create_unique<woxel::chunk_manager>());
 
-    subscribe<woxel::messages::mouse_button, &woxel_game_layer::on_mouse_button>(this);
-    subscribe<woxel::messages::mouse_button, &f>();
-
-    /*
-    auto &&reg = scene_.get_registry();
-
-    std::random_device rd;
-    std::mt19937 mt(rd());
-    std::uniform_real_distribution<float> dist(0.5f, 1.5f);
-    auto rnd = [&]() { return dist(mt); };
-
-    for (int x = -90; x <= 90; x += 30) {
-        for (int y = -50; y <= 50; y += 50) {
-            auto entity        = reg.create();
-            auto &m            = reg.emplace<metaball>(entity);
-            m.position_        = {float(x), float(y), 100.f};
-            m.rot_x_           = rnd();
-            m.rot_y_           = rnd();
-            m.time_multiplier_ = rnd();
-        }
-    }
-    */
+    // subscribe<woxel::messages::mouse_button, &woxel_game_layer::on_mouse_button>(this);
+    // subscribe<woxel::messages::mouse_button, &f>();
 }
 
 void woxel_game_layer::on_detach() { ZoneScoped; }
