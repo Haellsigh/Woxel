@@ -5,3 +5,5 @@ target_sources(${PROJECT_NAME} PRIVATE
   system.hh
   system.cc
 )
+
+add_subdirectory(world)
