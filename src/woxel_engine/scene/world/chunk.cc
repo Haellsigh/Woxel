@@ -2,8 +2,8 @@
 
 namespace woxel {
 
-void chunk::on_update(const stopwatch &s) {}
+void chunk::on_update(const stopwatch & /*s*/) {}
 
-void chunk::on_render(Magnum::GL::AbstractShaderProgram &shader) {}
+void chunk::on_render(Magnum::GL::AbstractShaderProgram & /*shader*/) {}
 
 } // namespace woxel

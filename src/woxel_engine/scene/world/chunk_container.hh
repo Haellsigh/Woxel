@@ -17,6 +17,7 @@ class chunk_container {
     chunk_container()  = default;
     ~chunk_container() = default;
 
+    /*
     template <typename Callable> void for_around(world_position const &origin, int32_t radius, Callable &&func) {
         for_around(to_chunk_position(origin), radius, std::forward<Callable>(func));
     }
@@ -29,12 +30,13 @@ class chunk_container {
             }
         }
     }
+    */
 
   private:
     // vector index to position
 
   private:
-    std::unordered_map<chunk_position, std::unique_ptr<chunk>> chunks_;
+    // std::unordered_map<chunk_position, std::unique_ptr<chunk>> chunks_;
 };
 
 } // namespace woxel
