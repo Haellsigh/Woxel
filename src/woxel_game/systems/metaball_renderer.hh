@@ -6,7 +6,9 @@
 
 #include <Magnum/GL/Buffer.h>
 #include <Magnum/GL/Mesh.h>
-#include <Magnum/Shaders/Phong.h>
+#pragma warning(disable : 4458)
+#include <Magnum/Shaders/PhongGL.h>
+#pragma warning(default : 4458)
 
 class metaball_renderer : public woxel::system {
   public:
@@ -22,7 +24,7 @@ class metaball_renderer : public woxel::system {
 
     woxel::unique<Magnum::GL::Mesh> mesh_;
     woxel::unique<Magnum::GL::Buffer> buffer_;
-    woxel::unique<Magnum::Shaders::Phong> shader_;
+    woxel::unique<Magnum::Shaders::PhongGL> shader_;
 
     static constexpr std::size_t k_buffer_size_bytes_ = metaball::k_max_vertices * sizeof(metaball::vertex);
 };

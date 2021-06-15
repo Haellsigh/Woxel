@@ -36,6 +36,7 @@ class chunk_container {
     // vector index to position
 
   private:
+    std::unique_ptr<chunk> chunks_;
     // std::unordered_map<chunk_position, std::unique_ptr<chunk>> chunks_;
 };
 

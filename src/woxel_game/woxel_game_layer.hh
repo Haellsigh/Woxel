@@ -5,13 +5,6 @@
 #include <woxel_engine/scene/system.hh>
 #include <woxel_engine/woxel_engine.hh>
 
-#include <Magnum/GL/Buffer.h>
-#include <Magnum/Math/Color.h>
-#include <Magnum/Math/Vector3.h>
-#include <Magnum/Math/Vector4.h>
-#include <Magnum/Shaders/Phong.h>
-#include <glm/glm.hpp>
-
 class woxel_game_layer : public woxel::layer {
   public:
     woxel_game_layer()  = default;

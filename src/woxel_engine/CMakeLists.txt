@@ -51,7 +51,7 @@ target_link_libraries(${PROJECT_NAME}
     imgui::imgui
     TracyClient
     EnTT::EnTT
-    glm
+    glm::glm
     #PRIVATE
     fmt::fmt-header-only
     spdlog::spdlog_header_only

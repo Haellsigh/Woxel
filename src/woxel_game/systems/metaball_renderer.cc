@@ -398,12 +398,13 @@ void metaball_renderer::on_attach() {
     mesh_ = woxel::create_unique<GL::Mesh>();
     (*mesh_)
         .setPrimitive(GL::MeshPrimitive::Triangles)
-        .addVertexBuffer(*buffer_, 0, Shaders::Phong::Position{}, Shaders::Phong::Normal{}, Shaders::Phong::Color3{});
+        .addVertexBuffer(*buffer_, 0, Shaders::PhongGL::Position{}, Shaders::PhongGL::Normal{},
+                         Shaders::PhongGL::Color3{});
 
     auto view       = Matrix4::lookAt({0.0f, 0.0f, -100.0f}, {0.0f, 0.0f, 0.0f}, {0.f, 1.0f, 0.f});
     auto projection = Matrix4::perspectiveProjection(60.0_degf, 16.f / 9.f, 0.1f, 1000.f);
 
-    shader_ = woxel::create_unique<Shaders::Phong>(Shaders::Phong::Flag::VertexColor);
+    shader_ = woxel::create_unique<Shaders::PhongGL>(Shaders::PhongGL::Flag::VertexColor);
     (*shader_).setShininess(50).setProjectionMatrix(projection * view);
 }
 
@@ -586,6 +587,12 @@ void metaball_renderer::on_imgui_render() {
     if (ImGui::Begin("metaball renderer")) {
         ImGui::Checkbox("use multithreading", &use_multithreading_);
 
+        if (ImGui::Button("Add metaball")) {
+            auto &reg   = scene_->get_registry();
+            auto entity = reg.create();
+            reg.emplace<metaball>(entity);
+        }
+
         scene_->get_registry().view<metaball>().each([&](auto const &e, auto &metaball) {
             if (ImGui::TreeNode(fmt::format("metaball #{}", e).c_str())) {
                 on_metaball_imgui_render(metaball);
@@ -595,12 +602,6 @@ void metaball_renderer::on_imgui_render() {
             ImGui::SameLine();
             if (ImGui::Button("remove")) { scene_->get_registry().destroy(e); }
         });
-
-        if (ImGui::Button("Add metaball")) {
-            auto &reg   = scene_->get_registry();
-            auto entity = reg.create();
-            reg.emplace<metaball>(entity);
-        }
     }
     ImGui::End();
 }
