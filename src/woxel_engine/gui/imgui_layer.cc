@@ -26,18 +26,21 @@ void imgui_layer::on_attach() {
     ImGui_ImplOpenGL3_Init("#version 150");
 
     subscribe<messages::framebuffer_size, &imgui_layer::on_framebuffer_resize>(this);
+
+    assert(context_);
 }
 
 void imgui_layer::on_detach() {
     ZoneScoped;
+    assert(context_);
 
     ImGui_ImplGlfw_Shutdown();
     ImGui_ImplOpenGL3_Shutdown();
-    ImGui::DestroyContext();
+    ImGui::DestroyContext(context_);
 }
 
 bool imgui_layer::on_framebuffer_resize(messages::framebuffer_size const &size) {
-    if (context_ == nullptr) { return false; }
+    assert(context_);
 
     ImGui::SetCurrentContext(context_);
     ImGui::GetIO().DisplaySize = ImVec2{static_cast<float>(size.width), static_cast<float>(size.height)};
