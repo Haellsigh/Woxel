@@ -14,8 +14,8 @@ bool f(woxel::messages::mouse_button const &b) { return b.button == 0; }
 
 void woxel_game_layer::on_attach() {
     ZoneScoped;
-    scene_.push_system(woxel::create_unique<metaball_renderer>());
-    scene_.push_system(woxel::create_unique<woxel::chunk_manager>());
+    //    scene_.push_system(woxel::create_unique<metaball_renderer>());
+    //    scene_.push_system(woxel::create_unique<woxel::chunk_manager>());
 
     // subscribe<woxel::messages::mouse_button, &woxel_game_layer::on_mouse_button>(this);
     // subscribe<woxel::messages::mouse_button, &f>();

@@ -7,3 +7,6 @@
 [submodule "src/woxel_engine/thirdparty/ctti"]
 	path = src/woxel_engine/thirdparty/ctti
 	url = https://github.com/Manu343726/ctti.git
+[submodule "src/woxel_game/thirdparty/imgui-node-editor"]
+	path = src/woxel_game/thirdparty/imgui-node-editor
+	url = https://github.com/thedmd/imgui-node-editor.git

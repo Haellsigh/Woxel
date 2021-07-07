@@ -8,7 +8,7 @@ project(woxel
   HOMEPAGE_URL "https://github.com/Haellsigh/Woxel"
 )
 
-set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
+list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 include(woxel_utilities)
 
 # Future documentation target
