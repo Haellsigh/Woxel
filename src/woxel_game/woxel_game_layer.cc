@@ -1,14 +1,9 @@
 #include "woxel_game_layer.hh"
-#include "systems/metaball_renderer.hh"
-
-#include <woxel_engine/core/log.hh>
-#include <woxel_engine/debug/instrumentor.hh>
-#include <woxel_engine/scene/system.hh>
-#include <woxel_engine/scene/world/chunk_manager.hh>
+#include "systems/simc.hh"
 
 #include <imgui.h>
-
-#include <random>
+#include <woxel_engine/core/log.hh>
+#include <woxel_engine/debug/instrumentor.hh>
 
 bool f(woxel::messages::mouse_button const &b) { return b.button == 0; }
 
@@ -16,6 +11,7 @@ void woxel_game_layer::on_attach() {
     ZoneScoped;
     //    scene_.push_system(woxel::create_unique<metaball_renderer>());
     //    scene_.push_system(woxel::create_unique<woxel::chunk_manager>());
+    scene_.push_system(woxel::create_unique<simc>());
 
     // subscribe<woxel::messages::mouse_button, &woxel_game_layer::on_mouse_button>(this);
     // subscribe<woxel::messages::mouse_button, &f>();
