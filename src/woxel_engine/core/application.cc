@@ -20,13 +20,13 @@ application::application() {
 
     {
         ZoneScopedN("glfw initialization");
+        glfwSetErrorCallback(
+            [](int error, const char *description) { log::core_error("glfw error ({}): {}", error, description); });
+
         if (glfwInit() == 0) {
             log::core_error("failed to initialize glfw");
             return;
         }
-
-        glfwSetErrorCallback(
-            [](int error, const char *description) { log::core_error("glfw error ({}): {}", error, description); });
 
         {
             ZoneScopedN("context window initialization");
@@ -80,15 +80,15 @@ application::application() {
         }
     }
 
-    layer_stack_ = create_unique<layer_stack>();
-    imgui_layer_ = create_unique<imgui_layer>();
-    imgui_layer_->on_attach();
-
     {
         ZoneScopedN("magnum initialization");
 
         context_ = create_unique<Platform::GLContext>();
     }
+
+    layer_stack_ = create_unique<layer_stack>();
+    imgui_layer_ = create_unique<imgui_layer>();
+    imgui_layer_->on_attach();
 
     initialization_successful_ = true;
 }
