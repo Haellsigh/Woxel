@@ -10,11 +10,7 @@ namespace ed = ax::NodeEditor;
 
 using PinType = std::size_t;
 
-enum class PinKind
-{
-    Input,
-    Output
-};
+using PinKind = ed::PinKind;
 
 struct Node;
 struct Pin;
@@ -22,11 +18,12 @@ struct Link;
 
 struct Pin {
     ed::PinId id;
-    Node *node;
+    Node *node = nullptr;
     std::string name;
-    PinKind kind;
+    PinType type = 0;
+    PinKind kind = PinKind::Input;
 
-    Pin(Node *parent) : node(parent) {}
+    Pin(ed::PinId id, std::string_view name, PinType type) : id(id), name(name), type(type) {}
 };
 
 struct Node {
@@ -38,7 +35,18 @@ struct Node {
 
     ImColor color{255, 255, 255};
 
-    Node(ed::NodeId id, std::string_view name) : id(id), name(name) {}
+    Node(ed::NodeId id, std::string_view name, ImColor color = ImColor{255, 255, 255}) : id(id), name(name) {}
+
+    void build() {
+        for (auto &pin : inputs) {
+            pin.node = this;
+            pin.kind = PinKind::Input;
+        }
+        for (auto &pin : outputs) {
+            pin.node = this;
+            pin.kind = PinKind::Output;
+        }
+    }
 };
 
 struct Link {
@@ -60,13 +68,18 @@ class system : public woxel::system {
   private:
     Node *spawn_node1();
     Node *spawn_node2();
+    void build_nodes();
+    Pin *find_pin(ed::PinId id);
+
+    bool can_create_link(Pin *a, Pin *b) const;
 
   private:
     ax::NodeEditor::EditorContext *editor_context_ = nullptr;
     std::vector<Node> nodes_;
     std::vector<Link> links_;
-    bool first_frame_ = true;
-    int next_link_id_ = 100;
+    bool first_frame_  = true;
+    int next_link_id_  = 100;
+    Pin *new_link_pin_ = nullptr;
 };
 
 } // namespace simc
