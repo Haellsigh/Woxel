@@ -3,7 +3,7 @@
 #include <imgui_internal.h>
 #include <woxel_engine/debug/instrumentor.hh>
 
-namespace ed = ax::NodeEditor;
+namespace simc {
 
 void ImGuiEx_BeginColumn() { ImGui::BeginGroup(); }
 
@@ -15,19 +15,19 @@ void ImGuiEx_NextColumn() {
 
 void ImGuiEx_EndColumn() { ImGui::EndGroup(); }
 
-void simc::on_attach() {
+void system::on_attach() {
     ZoneScoped;
     editor_context_ = ed::CreateEditor();
 }
 
-void simc::on_detach() {
+void system::on_detach() {
     ZoneScoped;
     if (editor_context_) ed::DestroyEditor(editor_context_);
 }
 
-void simc::on_update(const woxel::stopwatch &s) { ZoneScoped; }
+void system::on_update(const woxel::stopwatch &s) { ZoneScoped; }
 
-void simc::on_imgui_render() {
+void system::on_imgui_render() {
     ZoneScoped;
 
     auto &io = ImGui::GetIO();
@@ -117,4 +117,10 @@ void simc::on_imgui_render() {
     first_frame_ = false;
 }
 
-void simc::on_render() { ZoneScoped; }
+void system::on_render() { ZoneScoped; }
+
+Node *system::spawn_node1() { nodes_.emplace_back(); }
+
+Node *system::spawn_node2() {}
+
+} // namespace simc
