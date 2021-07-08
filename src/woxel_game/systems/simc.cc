@@ -77,7 +77,7 @@ void system::on_imgui_render() {
     ed::EndNode();
 
     for (auto &linkInfo : links_)
-        ed::Link(linkInfo.Id, linkInfo.InputId, linkInfo.OutputId);
+        ed::Link(linkInfo.id, linkInfo.start, linkInfo.end, linkInfo.color);
 
     if (ed::BeginCreate()) {
         ed::PinId inputPinId, outputPinId;
@@ -86,7 +86,7 @@ void system::on_imgui_render() {
                 if (ed::AcceptNewItem()) {
                     links_.push_back({ed::LinkId(next_link_id_++), inputPinId, outputPinId});
 
-                    ed::Link(links_.back().Id, links_.back().InputId, links_.back().OutputId);
+                    ed::Link(links_.back().id, links_.back().start, links_.back().end);
                 }
             }
         }
@@ -99,7 +99,7 @@ void system::on_imgui_render() {
             if (ed::AcceptDeletedItem()) {
                 for (auto it = std::begin(links_); it != std::end(links_); it++) {
                     auto &link = *it;
-                    if (link.Id == deletedLinkId) {
+                    if (link.id == deletedLinkId) {
                         links_.erase(it);
                         break;
                     }
@@ -119,7 +119,7 @@ void system::on_imgui_render() {
 
 void system::on_render() { ZoneScoped; }
 
-Node *system::spawn_node1() { nodes_.emplace_back(); }
+Node *system::spawn_node1() { nodes_.emplace_back(next_link_id_++, "idk"); }
 
 Node *system::spawn_node2() {}
 

@@ -2,13 +2,11 @@
 #include "woxel_engine/core/application.hh"
 #include "woxel_engine/core/log.hh"
 #include "woxel_engine/debug/instrumentor.hh"
-
+#include "woxel_engine/gui/imgui_impl_opengl3.h"
 #include <Magnum/GL/Renderer.h>
 #include <Magnum/Platform/GLContext.h>
 #include <imgui.h>
-
-#include "woxel_engine/gui/imgui_impl_glfw.h"
-#include "woxel_engine/gui/imgui_impl_opengl3.h"
+#include <imgui_impl_glfw.h>
 
 namespace woxel {
 

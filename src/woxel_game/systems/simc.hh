@@ -38,7 +38,7 @@ struct Node {
 
     ImColor color{255, 255, 255};
 
-    Node(ed::NodeId id, std::string_view name, ) : {}
+    Node(ed::NodeId id, std::string_view name) : id(id), name(name) {}
 };
 
 struct Link {
