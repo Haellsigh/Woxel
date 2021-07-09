@@ -4,9 +4,9 @@
 [submodule "src/woxel_engine/thirdparty/tracy"]
 	path = src/woxel_engine/thirdparty/tracy
 	url = https://github.com/wolfpld/tracy.git
-[submodule "src/woxel_game/thirdparty/imgui-node-editor"]
-	path = src/woxel_game/thirdparty/imgui-node-editor
-	url = https://github.com/thedmd/imgui-node-editor.git
 [submodule "src/woxel_engine/thirdparty/ctti"]
 	path = src/woxel_engine/thirdparty/ctti
 	url = https://github.com/azais-corentin/ctti.git
+[submodule "src/woxel_game/thirdparty/imnodes"]
+	path = src/woxel_game/thirdparty/imnodes
+	url = https://github.com/Nelarius/imnodes.git

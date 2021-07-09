@@ -1,13 +1,26 @@
 #pragma once
 
-#include <imgui_node_editor.h>
+#include <imnodes/imnodes.h>
+#include <string>
+#include <string_view>
 #include <vector>
 #include <woxel_engine/scene/system.hh>
 
 namespace simc {
 
-namespace ed = ax::NodeEditor;
+struct Node {
+    int id;
+    std::size_t inputs = 0, outputs = 0;
 
+    Node(int id, std::size_t inputs, std::size_t outputs) : id(id), inputs(inputs), outputs(outputs) {}
+};
+
+struct Link {
+    int id;
+    int start, end;
+};
+
+/*
 using PinType = std::size_t;
 
 using PinKind = ed::PinKind;
@@ -54,7 +67,10 @@ struct Link {
     ed::PinId start, end;
 
     ImColor color{255, 255, 255};
+
+    Link(ed::LinkId id, ed::PinId start, ed::PinId end) : id(id), start(start), end(end) {}
 };
+*/
 
 class system : public woxel::system {
   public:
@@ -66,6 +82,12 @@ class system : public woxel::system {
     void on_render() final;
 
   private:
+    ImNodesEditorContext *editor_context_ = nullptr;
+    std::vector<Node> nodes_;
+    std::vector<Link> links_;
+    int next_link_id_ = 0;
+    /*
+  private:
     Node *spawn_node1();
     Node *spawn_node2();
     void build_nodes();
@@ -75,11 +97,10 @@ class system : public woxel::system {
 
   private:
     ax::NodeEditor::EditorContext *editor_context_ = nullptr;
-    std::vector<Node> nodes_;
-    std::vector<Link> links_;
     bool first_frame_  = true;
     int next_link_id_  = 100;
     Pin *new_link_pin_ = nullptr;
+    */
 };
 
 } // namespace simc

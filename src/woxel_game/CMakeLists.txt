@@ -31,4 +31,4 @@ add_custom_command(
 message(STATUS "Module paths: ${CMAKE_MODULE_PATH}")
 
 # Libraries
-target_link_libraries(${PROJECT_NAME} PRIVATE woxel_engine imgui_node_editor)
+target_link_libraries(${PROJECT_NAME} PRIVATE woxel_engine imnodes)
