@@ -8,11 +8,27 @@
 
 namespace simc {
 
+// Signal dimension is the size of the vector
+using Signal = std::vector<double>;
+
+struct Pin {
+    int id;
+    std::size_t size;
+
+    constexpr Pin(int id, std::size_t size) : id(id), size(size) {}
+};
+
 struct Node {
     int id;
-    std::size_t inputs = 0, outputs = 0;
+    std::vector<Pin> inputs, outputs;
+    bool traversed = false;
 
-    Node(int id, std::size_t inputs, std::size_t outputs) : id(id), inputs(inputs), outputs(outputs) {}
+    std::function<std::vector<Signal>(double, const std::vector<Signal> &)> function;
+
+    Node(int id) : id(id) {}
+
+    void add_output(std::size_t dimension);
+    void add_input(std::size_t dimension);
 };
 
 struct Link {
@@ -81,11 +97,15 @@ class system : public woxel::system {
     void on_imgui_render() final;
     void on_render() final;
 
+  public:
+    void simulate();
+
   private:
     ImNodesEditorContext *editor_context_ = nullptr;
     std::vector<Node> nodes_;
     std::vector<Link> links_;
-    int next_link_id_ = 0;
+
+    double timestep_ = 0.1, final_time_ = 1.;
     /*
   private:
     Node *spawn_node1();

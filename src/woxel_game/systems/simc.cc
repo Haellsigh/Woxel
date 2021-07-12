@@ -1,5 +1,8 @@
 #include "simc.hh"
 #include <fmt/format.h>
+#include <numeric>
+#include <taskflow/taskflow.hpp>
+#include <unordered_map>
 #include <woxel_engine/core/log.hh>
 #include <woxel_engine/debug/instrumentor.hh>
 #define IMGUI_DEFINE_MATH_OPERATORS
@@ -10,15 +13,35 @@
 
 namespace simc {
 
-void ImGuiEx_BeginColumn() { ImGui::BeginGroup(); }
+inline int next_id = 0;
+int get_next_id() { return next_id++; }
 
-void ImGuiEx_NextColumn() {
-    ImGui::EndGroup();
-    ImGui::SameLine();
-    ImGui::BeginGroup();
+void Node::add_output(size_t size) { outputs.emplace_back(get_next_id(), size); }
+
+void Node::add_input(size_t size) { inputs.emplace_back(get_next_id(), size); }
+
+Node create_source_node() {
+    Node n{get_next_id()};
+    n.add_output(1);
+    n.function = [](double time, const std::vector<Signal> &inputs) -> std::vector<Signal> {
+        // woxel::log::trace("Generating {}", std::sin(10. * time));
+        return {{std::sin(10. * time)}};
+    };
+
+    return n;
 }
 
-void ImGuiEx_EndColumn() { ImGui::EndGroup(); }
+Node create_sink_node() {
+    Node n{get_next_id()};
+    n.add_input(1);
+    n.function = [](double time, const std::vector<Signal> &inputs) -> std::vector<Signal> {
+        // Log current value
+        // woxel::log::trace("Sinking {}", inputs.front().front());
+        return {};
+    };
+
+    return n;
+}
 
 void system::on_attach() {
     ZoneScoped;
@@ -48,58 +71,75 @@ void system::on_imgui_render() {
 
     ImNodes::EditorContextSet(editor_context_);
     ImGui::Begin("Node editor");
+    ImGui::BeginGroup();
+    if (ImGui::Button("Traverse")) { simulate(); }
+    ImGui::PushItemWidth(150);
+    ImGui::InputDouble("Timestep", &timestep_, 0.001, 0., "%.3f");
+    ImGui::SameLine();
+    ImGui::InputDouble("Final time", &final_time_, 1., 0., "%.3f");
+    ImGui::PopItemWidth();
+    ImGui::EndGroup();
 
     auto &io = ImGui::GetIO();
     ImGui::Text("FPS: %.2f (%.2gms)", io.Framerate, io.Framerate ? 1000.0f / io.Framerate : 0.0f);
 
     ImNodes::BeginNodeEditor();
     {
-        constexpr auto get_keys = []() -> std::size_t {
-            std::size_t i = 0;
-            if (ImGui::IsKeyReleased(GLFW_KEY_1)) { i += 1; }
-            if (ImGui::IsKeyReleased(GLFW_KEY_2)) { i += 2; }
-            if (ImGui::IsKeyReleased(GLFW_KEY_3)) { i += 3; }
-            if (ImGui::IsKeyReleased(GLFW_KEY_4)) { i += 4; }
-            if (ImGui::IsKeyReleased(GLFW_KEY_5)) { i += 5; }
-            if (ImGui::IsKeyReleased(GLFW_KEY_6)) { i += 6; }
-            if (ImGui::IsKeyReleased(GLFW_KEY_7)) { i += 7; }
-            if (ImGui::IsKeyReleased(GLFW_KEY_8)) { i += 8; }
-            if (ImGui::IsKeyReleased(GLFW_KEY_9)) { i += 9; }
-            return i;
+        enum class NodeType
+        {
+            None,
+            Source,
+            Sink
         };
+
+        constexpr auto get_keys = []() -> NodeType {
+            if (ImGui::IsKeyReleased(GLFW_KEY_1)) { return NodeType::Source; }
+            if (ImGui::IsKeyReleased(GLFW_KEY_2)) { return NodeType::Sink; }
+            return NodeType::None;
+        };
+        const auto keys = get_keys();
         if (ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows) && ImNodes::IsEditorHovered() &&
-            get_keys() > 0) {
-            const auto size   = get_keys();
-            const int node_id = next_link_id_;
-            next_link_id_ += 3; // 3 = node + input + output
-            ImNodes::SetNodeScreenSpacePos(node_id, ImGui::GetMousePos());
-            nodes_.emplace_back(node_id, size, size + (ImGui::IsKeyDown(GLFW_KEY_SPACE) ? -1 : 1));
+            keys != NodeType::None) {
+            if (keys == NodeType::Source) {
+                nodes_.push_back(create_source_node());
+            } else if (keys == NodeType::Sink) {
+                nodes_.push_back(create_sink_node());
+            }
+            ImNodes::SetNodeScreenSpacePos(nodes_.back().id, ImGui::GetMousePos());
         }
 
         for (auto &node : nodes_) {
             ImNodes::BeginNode(node.id);
 
             ImNodes::BeginNodeTitleBar();
-            ImGui::TextUnformatted("node");
+            ImGui::TextUnformatted(fmt::format("Node {}", node.id).c_str());
             ImNodes::EndNodeTitleBar();
 
-            if (node.inputs > 0) {
-                ImNodes::BeginInputAttribute(node.id + 1);
-                ImGui::TextUnformatted("input");
+            ImGui::BeginGroup();
+            for (auto &input : node.inputs) {
+                ImNodes::BeginInputAttribute(input.id);
+                ImGui::TextUnformatted(fmt::format("Vector{}: {}", input.size, input.id).c_str());
                 ImNodes::EndInputAttribute();
             }
+            ImGui::EndGroup();
 
+            /*
             ImNodes::BeginStaticAttribute(node.id << 16);
-            ImGui::Text("%s", fmt::format("{}/{}", node.inputs, node.outputs).c_str());
+            ImGui::Text("%s", fmt::format("{}/{}", node.inputs.size(), node.outputs.size()).c_str());
             ImNodes::EndStaticAttribute();
+            */
 
-            if (node.outputs > 0) {
-                ImNodes::BeginOutputAttribute(node.id + 2);
-                const float text_width = ImGui::CalcTextSize("output").x;
+            ImGui::SameLine();
+            ImGui::BeginGroup();
+            for (auto &output : node.outputs) {
+                ImNodes::BeginOutputAttribute(output.id);
+                ImGui::TextUnformatted(fmt::format("Vector{}: {}", output.size, output.id).c_str());
+                /*const float text_width = ImGui::CalcTextSize("output").x;
                 ImGui::Indent(120.f + ImGui::CalcTextSize("value").x - text_width);
-                ImGui::TextUnformatted("output");
+                ImGui::TextUnformatted("output");*/
                 ImNodes::EndOutputAttribute();
             }
+            ImGui::EndGroup();
 
             ImNodes::EndNode();
         }
@@ -113,17 +153,21 @@ void system::on_imgui_render() {
     {
         Link link;
         if (ImNodes::IsLinkCreated(&link.start, &link.end)) {
-            auto start_node =
-                std::find_if(nodes_.begin(), nodes_.end(),
-                             [output_id = link.start](const Node &node) -> bool { return node.id == (output_id - 2); });
-            auto end_node = std::find_if(nodes_.begin(), nodes_.end(), [input_id = link.end](const Node &node) -> bool {
-                return node.id == (input_id - 1);
-            });
-            assert(start_node != nodes_.end());
-            assert(end_node != nodes_.end());
+            std::size_t output_size = 0, input_size = 0;
+            for (const auto &node : nodes_) {
+                const auto start_pin = std::find_if(node.outputs.begin(), node.outputs.end(),
+                                                    [start = link.start](const Pin &p) { return p.id == start; });
+                if (start_pin != node.outputs.end()) { output_size = start_pin->size; }
+                const auto end_pin = std::find_if(node.inputs.begin(), node.inputs.end(),
+                                                  [end = link.end](const Pin &p) { return p.id == end; });
+                if (end_pin != node.inputs.end()) { input_size = end_pin->size; }
+            }
+            // Verify the link.end doesn't already appear in links_
+            auto link_it = std::find_if(links_.begin(), links_.end(),
+                                        [end = link.end](const Link &link) { return link.end == end; });
 
-            if (start_node->outputs == end_node->inputs) {
-                link.id = next_link_id_++;
+            if (link_it == links_.end() && output_size == input_size && input_size != 0 && output_size != 0) {
+                link.id = get_next_id();
                 links_.push_back(link);
             }
         }
@@ -143,5 +187,69 @@ void system::on_imgui_render() {
 }
 
 void system::on_render() { ZoneScoped; }
+
+void system::simulate() {
+    // Compile the current graph
+    tf::Taskflow taskflow;
+    tf::Executor executor(1);
+
+    std::vector<tf::Task> tasks;
+    std::unordered_map<int, std::vector<Signal>> data;
+    std::unordered_map<int, int> input_data_node_id;
+
+    double time = 0.;
+
+    // Create tasks with no work
+    tasks.resize(nodes_.size(), taskflow.placeholder());
+
+    // Create dependencies between tasks depending on node links
+    for (auto &link : links_) {
+        // Find the start and end node index in nodes_ from each link's pin ids
+        auto nodeit    = nodes_.begin();
+        int node_start = -1, node_end = -1;
+        while (nodeit != nodes_.end() && (node_start == -1 || node_end == -1)) {
+            auto &node = *nodeit;
+            // Find start node (match output pin)
+            {
+                auto it_start = std::find_if(node.outputs.begin(), node.outputs.end(),
+                                             [start = link.start](const Pin &p) { return start == p.id; });
+                if (it_start != node.outputs.end()) { node_start = std::distance(nodes_.begin(), nodeit); }
+            }
+            // Find end node (match input pin)
+            {
+                auto it_end = std::find_if(node.inputs.begin(), node.inputs.end(),
+                                           [end = link.end](const Pin &p) { return end == p.id; });
+                if (it_end != node.inputs.end()) { node_end = std::distance(nodes_.begin(), nodeit); }
+            }
+            nodeit++;
+        }
+        assert(node_start != -1 && node_end != -1); // assert we found both nodes
+        input_data_node_id[node_end] = node_start;
+        tasks[node_start].precede(tasks[node_end]);
+    }
+
+    // Add the work (traversal task) for each task/node
+    for (auto &node : nodes_) {
+        tf::Task task = taskflow.emplace([&] {
+            // woxel::log::trace("Executing node {} at t={}", node.id, time);
+            node.traversed = true;
+            if (input_data_node_id[node.id] == -1) {
+                data[node.id] = node.function(time, {});
+            } else {
+                data[node.id] = node.function(time, data[input_data_node_id[node.id]]);
+            }
+        });
+        tasks.push_back(task);
+    }
+
+    // Traverse graph
+    const auto t1 = std::chrono::high_resolution_clock::now();
+    while (time < final_time_) {
+        executor.run(taskflow).wait();
+        time += timestep_;
+    }
+    const auto t2 = std::chrono::high_resolution_clock::now();
+    woxel::log::trace("time {} ns per iteration", (t2 - t1).count() / (final_time_ / timestep_));
+}
 
 } // namespace simc
