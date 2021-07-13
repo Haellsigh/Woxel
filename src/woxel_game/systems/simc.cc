@@ -194,14 +194,16 @@ void system::simulate() {
     tf::Taskflow taskflow;
     tf::Executor executor(1);
 
-    std::vector<tf::Task> tasks;
+    std::unordered_map<int, tf::Task> tasks;
     std::unordered_map<int, std::vector<Signal>> data;
     std::unordered_map<int, int> input_data_node_id;
 
     double time = 0.;
 
     // Create tasks with no work
-    tasks.resize(nodes_.size(), taskflow.placeholder());
+    for (auto &node : nodes_) {
+        tasks[node.id] = taskflow.placeholder();
+    }
 
     // Create dependencies between tasks depending on node links
     for (auto &link : links_) {
@@ -217,13 +219,13 @@ void system::simulate() {
                 {
                     auto it_start = std::find_if(node.outputs.begin(), node.outputs.end(),
                                                  [start = link.start](const Pin &p) { return start == p.id; });
-                    if (it_start != node.outputs.end()) { node_start = std::distance(nodes_.begin(), nodeit); }
+                    if (it_start != node.outputs.end()) { node_start = node.id; }
                 }
                 // Find end node (match input pin)
                 {
                     auto it_end = std::find_if(node.inputs.begin(), node.inputs.end(),
                                                [end = link.end](const Pin &p) { return end == p.id; });
-                    if (it_end != node.inputs.end()) { node_end = std::distance(nodes_.begin(), nodeit); }
+                    if (it_end != node.inputs.end()) { node_end = node.id; }
                 }
                 nodeit++;
             }
@@ -239,18 +241,21 @@ void system::simulate() {
     // Add the work (traversal task) for each task/node
     for (auto &node : nodes_) {
         ZoneScopedN("add work");
-        tf::Task task = taskflow.emplace([&] {
-            ZoneScopedN("execute task");
-            // woxel::log::trace("Executing node {} at t={}", node.id, time);
-            node.traversed = true;
-            if (input_data_node_id[node.id] == -1) {
-                data[node.id] = node.function(time, {});
-            } else {
-                data[node.id] = node.function(time, data[input_data_node_id[node.id]]);
-            }
-        });
-        tasks.push_back(task);
+        tasks[node.id]
+            .work([&] {
+                ZoneScopedN("execute task");
+                // woxel::log::trace("Executing node {} at t={}", node.id, time);
+                node.traversed = true;
+                if (input_data_node_id[node.id] == -1) {
+                    data[node.id] = node.function(time, {});
+                } else {
+                    data[node.id] = node.function(time, data[input_data_node_id[node.id]]);
+                }
+            })
+            .name(fmt::format("Node {}", node.id));
     }
+
+    woxel::log::trace(taskflow.dump());
 
     // Traverse graph
     const auto t1 = std::chrono::high_resolution_clock::now();
