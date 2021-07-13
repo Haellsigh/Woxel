@@ -244,12 +244,15 @@ void system::simulate() {
         tasks[node.id]
             .work([&] {
                 ZoneScopedN("execute task");
-                // woxel::log::trace("Executing node {} at t={}", node.id, time);
                 node.traversed = true;
-                if (input_data_node_id[node.id] == -1) {
-                    data[node.id] = node.function(time, {});
+                woxel::log::trace("data[id]: {}", data.contains(node.id));
+                woxel::log::trace("input_data_node_id[id]: {}", input_data_node_id.contains(node.id));
+                if (input_data_node_id.contains(node.id)) {
+                    woxel::log::trace("data[input_data_node_id[id]]: {}",
+                                      data.contains(input_data_node_id.at(node.id)));
+                    data.insert_or_assign(node.id, node.function(time, data.at(input_data_node_id.at(node.id))));
                 } else {
-                    data[node.id] = node.function(time, data[input_data_node_id[node.id]]);
+                    data.insert_or_assign(node.id, node.function(time, {}));
                 }
             })
             .name(fmt::format("Node {}", node.id));
@@ -264,7 +267,11 @@ void system::simulate() {
         executor.run(taskflow).wait();
         time += timestep_;
     }*/
-    executor.run_n(taskflow, final_time_ / timestep_).wait();
+    executor.run_until(taskflow, [&] {
+        time += timestep_;
+        return time >= final_time_;
+    });
+    // executor.run_n(taskflow, final_time_ / timestep_).wait();
     const auto t2 = std::chrono::high_resolution_clock::now();
     woxel::log::trace("time {} ns per iteration", (t2 - t1).count() / (final_time_ / timestep_));
 }

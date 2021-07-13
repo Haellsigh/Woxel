@@ -105,7 +105,7 @@ class system : public woxel::system {
     std::vector<Node> nodes_;
     std::vector<Link> links_;
 
-    double timestep_ = 0.1, final_time_ = 1.;
+    double timestep_ = 0.001, final_time_ = 100.;
     /*
   private:
     Node *spawn_node1();
