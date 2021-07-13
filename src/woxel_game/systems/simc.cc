@@ -254,11 +254,12 @@ void system::simulate() {
 
     // Traverse graph
     const auto t1 = std::chrono::high_resolution_clock::now();
-    while (time < final_time_) {
+    /*while (time < final_time_) {
         ZoneScopedN("execute 1");
         executor.run(taskflow).wait();
         time += timestep_;
-    }
+    }*/
+    executor.run_n(taskflow, final_time_ / timestep_).wait();
     const auto t2 = std::chrono::high_resolution_clock::now();
     woxel::log::trace("time {} ns per iteration", (t2 - t1).count() / (final_time_ / timestep_));
 }
