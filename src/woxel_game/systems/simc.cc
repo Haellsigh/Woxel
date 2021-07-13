@@ -189,6 +189,7 @@ void system::on_imgui_render() {
 void system::on_render() { ZoneScoped; }
 
 void system::simulate() {
+    ZoneScopedN("simulate");
     // Compile the current graph
     tf::Taskflow taskflow;
     tf::Executor executor(1);
@@ -204,33 +205,42 @@ void system::simulate() {
 
     // Create dependencies between tasks depending on node links
     for (auto &link : links_) {
+        ZoneScopedN("for each link");
         // Find the start and end node index in nodes_ from each link's pin ids
         auto nodeit    = nodes_.begin();
         int node_start = -1, node_end = -1;
-        while (nodeit != nodes_.end() && (node_start == -1 || node_end == -1)) {
-            auto &node = *nodeit;
-            // Find start node (match output pin)
-            {
-                auto it_start = std::find_if(node.outputs.begin(), node.outputs.end(),
-                                             [start = link.start](const Pin &p) { return start == p.id; });
-                if (it_start != node.outputs.end()) { node_start = std::distance(nodes_.begin(), nodeit); }
+        {
+            ZoneScopedN("find start/end node");
+            while (nodeit != nodes_.end() && (node_start == -1 || node_end == -1)) {
+                auto &node = *nodeit;
+                // Find start node (match output pin)
+                {
+                    auto it_start = std::find_if(node.outputs.begin(), node.outputs.end(),
+                                                 [start = link.start](const Pin &p) { return start == p.id; });
+                    if (it_start != node.outputs.end()) { node_start = std::distance(nodes_.begin(), nodeit); }
+                }
+                // Find end node (match input pin)
+                {
+                    auto it_end = std::find_if(node.inputs.begin(), node.inputs.end(),
+                                               [end = link.end](const Pin &p) { return end == p.id; });
+                    if (it_end != node.inputs.end()) { node_end = std::distance(nodes_.begin(), nodeit); }
+                }
+                nodeit++;
             }
-            // Find end node (match input pin)
-            {
-                auto it_end = std::find_if(node.inputs.begin(), node.inputs.end(),
-                                           [end = link.end](const Pin &p) { return end == p.id; });
-                if (it_end != node.inputs.end()) { node_end = std::distance(nodes_.begin(), nodeit); }
-            }
-            nodeit++;
         }
-        assert(node_start != -1 && node_end != -1); // assert we found both nodes
-        input_data_node_id[node_end] = node_start;
-        tasks[node_start].precede(tasks[node_end]);
+        {
+            ZoneScopedN("set tasks and input data");
+            assert(node_start != -1 && node_end != -1); // assert we found both nodes
+            input_data_node_id[node_end] = node_start;
+            tasks[node_start].precede(tasks[node_end]);
+        }
     }
 
     // Add the work (traversal task) for each task/node
     for (auto &node : nodes_) {
+        ZoneScopedN("add work");
         tf::Task task = taskflow.emplace([&] {
+            ZoneScopedN("execute task");
             // woxel::log::trace("Executing node {} at t={}", node.id, time);
             node.traversed = true;
             if (input_data_node_id[node.id] == -1) {
@@ -245,6 +255,7 @@ void system::simulate() {
     // Traverse graph
     const auto t1 = std::chrono::high_resolution_clock::now();
     while (time < final_time_) {
+        ZoneScopedN("execute 1");
         executor.run(taskflow).wait();
         time += timestep_;
     }
